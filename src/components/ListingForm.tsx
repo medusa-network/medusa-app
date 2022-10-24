@@ -154,7 +154,7 @@ const ListingForm: FC = () => {
             <input
               required
               type="number"
-              placeholder="ETH"
+              placeholder="0.001 ETH"
               className="form-input my-5 block w-full dark:bg-gray-800 dark:text-white"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
