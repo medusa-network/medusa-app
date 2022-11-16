@@ -1,13 +1,8 @@
-import { FC, useEffect, useState } from 'react'
+import { FC, useEffect } from 'react'
 import Head from 'next/head'
-import { useAccount, useContract, useContractEvent, useContractRead, useProvider } from 'wagmi'
-import { EVMPoint, HGamalEVM, PublicKey, SecretKey, init } from '@medusa-network/medusa-sdk'
-import { G1 } from '@medusa-network/medusa-sdk/lib/bn254_iden'
+import { useAccount, useContract, useContractEvent, useProvider, useSigner } from 'wagmi'
 
-import { APP_NAME, CONTRACT_ABI, CONTRACT_ADDRESS } from '@/lib/consts'
-import ConnectWallet from '@/components/ConnectWallet'
-import Signin from '@/components/Signin'
-import ThemeSwitcher from '@/components/ThemeSwitcher'
+import { APP_NAME, CONTRACT_ABI, CONTRACT_ADDRESS, ORACLE_ADDRESS } from '@/lib/consts'
 import ListingForm from '@/components/ListingForm'
 import Listings from '@/components/Listings'
 import { Listing, Sale, Decryption, default as useGlobalStore } from '@/stores/globalStore'
@@ -15,49 +10,17 @@ import { ethers } from 'ethers'
 import PurchasedSecrets from '@/components/PurchasedSecrets'
 import Header from '@/components/Header'
 import { Toaster } from 'react-hot-toast'
-import { useTheme } from 'next-themes'
 
 const Home: FC = () => {
-  const { resolvedTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  // Necessary to avoid "Hyrdation Mismatch" between server and client
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
   const provider = useProvider()
-
   const { address } = useAccount()
 
-  const updateMedusaKey = useGlobalStore((state) => state.updateMedusaKey)
-  const medusaKey = useGlobalStore((state) => state.medusaKey)
   const updateListings = useGlobalStore((state) => state.updateListings)
   const updateSales = useGlobalStore((state) => state.updateSales)
   const updateDecryptions = useGlobalStore((state) => state.updateDecryptions)
   const addListing = useGlobalStore((state) => state.addListing)
   const addSale = useGlobalStore((state) => state.addSale)
   const addDecryption = useGlobalStore((state) => state.addDecryption)
-
-  useContractRead({
-    address: CONTRACT_ADDRESS,
-    abi: CONTRACT_ABI,
-    functionName: 'publicKey',
-    watch: false,
-    enabled: !Boolean(medusaKey),
-    onSuccess: async (medusaKey: EVMPoint) => {
-      await init()
-      try {
-        const key = new G1().fromEvm(medusaKey)._unsafeUnwrap()
-        console.log('Retrieved key from medusa oracle', key)
-        updateMedusaKey(key)
-      } catch (e) {
-        console.log("Failed to convert medusa key from EVMPoint: ", e);
-      }
-    },
-    onError: (e: any) => {
-      console.log('Error requesting medusa key from contract', e)
-    }
-  })
 
   useContractEvent({
     address: CONTRACT_ADDRESS,

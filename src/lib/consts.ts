@@ -1,5 +1,6 @@
 export const APP_NAME = 'OnlyFiles' as const
 export const CONTRACT_ADDRESS = '0xDbf5B82C9b3Cd8291878b4d355368ab6e32b9A14' as const
+export const ORACLE_ADDRESS = '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118' as const
 
 // The <const> assertion enables wagmi to infer the correct types when using the ABI in hooks
 export const CONTRACT_ABI = <const>[

@@ -11,10 +11,10 @@ import { arbitrumGoerli } from 'wagmi/chains'
 const Listing: FC<Listing & { purchased: boolean }> = ({ cipherId, uri, name, description, price, purchased }) => {
   const { isConnected } = useAccount()
 
-  const keypair = useGlobalStore((state) => state.keypair)
+  const medusa = useGlobalStore((state) => state.medusa)
   let evmPoint = null;
-  if (keypair) {
-    const { x, y } = keypair.pubkey.toEvm()
+  if (medusa?.keypair) {
+    const { x, y } = medusa.keypair.pubkey.toEvm()
     evmPoint = { x, y }
   }
 
