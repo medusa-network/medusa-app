@@ -1,33 +1,15 @@
 import { FC, useEffect, useState } from 'react'
 import Image from 'next/image'
 import useGlobalStore, { Sale } from '@/stores/globalStore'
-import { suite, EncryptionBundle, HGamalEVM, HGamalSuite, HGamalCipher } from '@medusa-network/medusa-sdk'
 import { BigNumber } from 'ethers'
-import { arrayify, formatEther, hexZeroPad } from 'ethers/lib/utils'
+import { formatEther } from 'ethers/lib/utils'
 import { Base64 } from 'js-base64'
 import { ipfsGatewayLink } from '@/lib/utils'
-
-function bnToArray(
-  big: BigNumber,
-  reverse = false,
-  padToLength = 0
-): Uint8Array {
-  const arr = arrayify(
-    padToLength > 0
-      ? hexZeroPad(big.toHexString(), padToLength)
-      : big.toHexString()
-  );
-
-  if (reverse) {
-    return arr.reverse();
-  }
-
-  return arr;
-}
+import { useSigner } from 'wagmi'
 
 const Unlocked: FC<Sale> = ({ buyer, seller, requestId, cipherId }) => {
-  const keypair = useGlobalStore((state) => state.keypair)
-  const medusaKey = useGlobalStore((state) => state.medusaKey)
+  const medusa = useGlobalStore((state) => state.medusa)
+  const { data: signer, isSuccess: isSignerLoaded } = useSigner()
 
   const listings = useGlobalStore((state) => state.listings)
   const decryptions = useGlobalStore((state) => state.decryptions)
@@ -40,35 +22,18 @@ const Unlocked: FC<Sale> = ({ buyer, seller, requestId, cipherId }) => {
 
   useEffect(() => {
     const decryptContent = async () => {
-      if (!decryption || !keypair) return
+      if (!decryption || !signer || !medusa?.keypair) return
 
       const { ciphertext } = decryption
 
       console.log("Downloading encrypted content from ipfs")
       const ipfsDownload = ipfsGatewayLink(listing.uri)
       const response = await fetch(ipfsDownload)
-      const encryptedContents = await response.text()
+      const encryptedContents = Base64.toUint8Array(await response.text())
 
-      // Base64 decode into Uint8Array
-      const encryptedData = Base64.toUint8Array(encryptedContents)
-
-      const hgamalSuite = new HGamalSuite(suite)
-
-      // Convert bignumber to hexstring, pad to 64 characters (32 bytes), convert to byte array
-      const evmCipherArray = bnToArray(ciphertext.cipher, false, 32)
-      const evmCipher = new HGamalEVM(ciphertext.random, evmCipherArray, ciphertext.random2, ciphertext.dleq)
-
-      // Convert the ciphertext to a format that the Medusa SDK can use
-      const cipher = HGamalCipher.default(suite).fromEvm(evmCipher)._unsafeUnwrap()
-
-      // Create bundle with encrypted data and extraneous cipher (not used)
-      const bundle = new EncryptionBundle(encryptedData, cipher)
-
-      // Decrypt
       try {
-        const decryptionRes = await hgamalSuite.decryptFromMedusa(keypair.secret, medusaKey, bundle, cipher)
-        // Decode to string
-        const msg = new TextDecoder().decode(decryptionRes._unsafeUnwrap())
+        const decryptedBytes = await medusa.decrypt(ciphertext, encryptedContents)
+        const msg = new TextDecoder().decode(decryptedBytes)
         setPlaintext(msg)
         if (isFile(msg)) {
           const fileData = msg.split(',')[1]
@@ -86,7 +51,7 @@ const Unlocked: FC<Sale> = ({ buyer, seller, requestId, cipherId }) => {
       }
     }
     decryptContent()
-  }, [decryption, keypair, medusaKey, listing.uri])
+  }, [decryption, listing.uri, isSignerLoaded, medusa?.keypair])
 
   const isFile = (data: string) => {
     return data.startsWith('data:')

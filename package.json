@@ -1,7 +1,6 @@
 {
   "name": "medusa-app",
   "version": "0.1.0",
-  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,12 +9,12 @@
   },
   "dependencies": {
     "@heroicons/react": "^1.0.6",
-    "@medusa-network/medusa-sdk": "0.0.1-rc5",
+    "@medusa-network/medusa-sdk": "0.0.1",
     "@tailwindcss/forms": "^0.5.3",
     "autoprefixer": "^10.4.7",
     "connectkit": "^0.0.2",
     "ethers": "^5.7.1",
-    "js-base64": "^3.7.2",
+    "js-base64": "^3.7.3",
     "next": "12.3.1",
     "next-themes": "^0.2.0",
     "postcss": "^8.4.14",

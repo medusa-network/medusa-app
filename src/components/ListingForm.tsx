@@ -1,29 +1,25 @@
 import { FC, useState, useEffect } from 'react'
-import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useAccount } from 'wagmi'
+import { usePrepareContractWrite, useContractWrite, useWaitForTransaction } from 'wagmi'
 import { arbitrumGoerli } from 'wagmi/chains'
-import { suite, HGamalSuite, Label } from '@medusa-network/medusa-sdk'
+import { HGamalEVMCipher } from '@medusa-network/medusa-sdk'
 
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from '@/lib/consts'
 import { parseEther } from 'ethers/lib/utils'
 import storeCiphertext from '@/lib/storeCiphertext'
-import useGlobalStore from '@/stores/globalStore'
-import { EVMCipher } from '@medusa-network/medusa-sdk/lib/hgamal'
-import { Base64 } from 'js-base64'
 import toast from 'react-hot-toast'
 import { ipfsGatewayLink } from '@/lib/utils'
+import useGlobalStore from '@/stores/globalStore'
+import { Base64 } from 'js-base64'
 
 const ListingForm: FC = () => {
-  const keypair = useGlobalStore((state) => state.keypair)
-  const medusaKey = useGlobalStore((state) => state.medusaKey)
-  const { address } = useAccount()
+  const medusa = useGlobalStore((state) => state.medusa)
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
 
   const [plaintext, setPlaintext] = useState('')
-  const [file, setFile] = useState<File>()
-  const [ciphertextKey, setCiphertextKey] = useState<EVMCipher>()
+  const [ciphertextKey, setCiphertextKey] = useState<HGamalEVMCipher>()
   const [cid, setCid] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -74,16 +70,16 @@ const ListingForm: FC = () => {
     setSubmitting(true)
     console.log("Submitting new listing");
 
-    const hgamalSuite = new HGamalSuite(suite)
     const buff = new TextEncoder().encode(plaintext)
+    await medusa.fetchPublicKey()
     try {
-      const label = Label.from(medusaKey, CONTRACT_ADDRESS, address);
-      const bundle = (await hgamalSuite.encryptToMedusa(buff, medusaKey, label))._unsafeUnwrap();
-      setCiphertextKey(bundle.encryptedKey.toEvm())
-      const encodedCiphertext = Base64.fromUint8Array(bundle.encryptedData);
+      const { encryptedData, encryptedKey } = await medusa.encrypt(buff, CONTRACT_ADDRESS);
+      const b64EncryptedData = Base64.fromUint8Array(encryptedData)
+      console.log("Encrypted KEY: ", encryptedKey);
+      setCiphertextKey(encryptedKey)
 
       toast.promise(
-        storeCiphertext(name, encodedCiphertext),
+        storeCiphertext(name, b64EncryptedData),
         {
           loading: 'Uploading encrypted secret to IPFS...',
           success: (cid) => {
@@ -182,10 +178,10 @@ const ListingForm: FC = () => {
         >
           <button
             type="submit"
-            disabled={isLoading || submitting || !keypair || !medusaKey}
+            disabled={isLoading || submitting}
             className="font-mono font-semibold mt-5 text-xl text-white py-4 px-4 rounded-sm transition-colors bg-indigo-600 dark:bg-indigo-800 hover:bg-black dark:hover:bg-gray-50 dark:hover:text-gray-900 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-25"
           >
-            {isLoading || submitting ? 'Submitting...' : keypair ? 'Sell your Secret' : 'Please sign in'}
+            {isLoading || submitting ? 'Submitting...' : medusa?.keypair ? 'Sell your Secret' : 'Please sign in'}
           </button>
         </div>
         {
