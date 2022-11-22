@@ -881,10 +881,10 @@
     "@json-rpc-tools/types" "^1.7.6"
     "@pedrouid/environment" "^1.0.1"
 
-"@medusa-network/medusa-sdk@0.0.1-rc15":
-  version "0.0.1-rc15"
-  resolved "https://registry.yarnpkg.com/@medusa-network/medusa-sdk/-/medusa-sdk-0.0.1-rc15.tgz#f315cc8c5e2808c5398a9c3caff89e47b4a264eb"
-  integrity sha512-0Kl2odW0gWuFfBluHV3FlfAsON8C+gBkDU8I1xzV96ONvDRtklMoxuEagnUc3+LJWQexb/hA96WwTa1YhvyPVg==
+"@medusa-network/medusa-sdk@0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@medusa-network/medusa-sdk/-/medusa-sdk-0.0.1.tgz#9de75fdc255cbb75e6369db310a2a45f872702a4"
+  integrity sha512-m/vr7eCHAf50/12kgoIk63jdzL4CLgac4xIff7gXj7QRN1YBZyjRplK+46Hr00Pua95MH6EEihZTwWCqsFvrdA==
   dependencies:
     ffjavascript "^0.2.56"
     hardhat "^2.9.5"
