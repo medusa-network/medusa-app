@@ -1,7 +1,6 @@
 import { SecretKey, PublicKey, HGamalEVMCipher as Ciphertext, Medusa } from '@medusa-network/medusa-sdk'
 import { BigNumber } from 'ethers'
 import create from 'zustand'
-import shallow from 'zustand/shallow'
 
 export interface Listing {
   seller: string
