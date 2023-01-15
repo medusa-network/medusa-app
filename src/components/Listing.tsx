@@ -1,16 +1,16 @@
-import { CONTRACT_ABI, CONTRACT_ADDRESS } from '@/lib/consts'
+import { CHAIN_CONFIG, CONTRACT_ABI } from '@/lib/consts'
 import { ipfsGatewayLink } from '@/lib/utils'
 import useGlobalStore, { Listing } from '@/stores/globalStore'
 import { BigNumber } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
 import { FC } from 'react'
 import toast from 'react-hot-toast'
-import { useAccount, useContractWrite, usePrepareContractWrite, useWaitForTransaction } from 'wagmi'
-import { arbitrumGoerli } from 'wagmi/chains'
+import { useAccount, useContractWrite, useNetwork, usePrepareContractWrite, useWaitForTransaction } from 'wagmi'
 
 const Listing: FC<Listing & { purchased: boolean }> = ({ cipherId, uri, name, description, price, purchased }) => {
   const { isConnected } = useAccount()
 
+  const { chain } = useNetwork()
   const medusa = useGlobalStore((state) => state.medusa)
   let evmPoint = null;
   if (medusa?.keypair) {
@@ -19,13 +19,13 @@ const Listing: FC<Listing & { purchased: boolean }> = ({ cipherId, uri, name, de
   }
 
   const { config } = usePrepareContractWrite({
-    address: CONTRACT_ADDRESS,
+    address: CHAIN_CONFIG[chain?.id]?.appContractAddress,
     abi: CONTRACT_ABI,
     functionName: 'buyListing',
     args: [cipherId, evmPoint],
-    enabled: Boolean(evmPoint),
+    enabled: Boolean(evmPoint) && Boolean(chain),
     overrides: { value: price },
-    chainId: arbitrumGoerli.id
+    chainId: chain?.id
   })
 
   const { data, write: buyListing } = useContractWrite(config)

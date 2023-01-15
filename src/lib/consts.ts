@@ -1,6 +1,64 @@
+import { Address, Chain } from "wagmi"
+import { arbitrumGoerli } from "wagmi/chains"
+
 export const APP_NAME = 'OnlyFiles' as const
-export const CONTRACT_ADDRESS = '0xDbf5B82C9b3Cd8291878b4d355368ab6e32b9A14' as const
-export const ORACLE_ADDRESS = '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118' as const
+
+export const wallaby: Chain = {
+  id: 31415,
+  name: 'Wallaby Testnet',
+  network: 'wallaby',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Filecoin',
+    symbol: 'tFil',
+  },
+  rpcUrls: {
+    default: { http: ['https://wallaby.node.glif.io/rpc/v1'] },
+    private: { http: ['https://archive.wallaby.node.glif.io/lotus/rpc/v1'] },
+    // private: { http: ['https://hyperspace.node.glif.io/archive/lotus/rpc/v1'] },
+  },
+  blockExplorers: {
+    default: { name: 'Glif', url: 'https://explorer.glif.io' },
+  },
+  // testnet: true,
+}
+
+export const hyperspace: Chain = {
+  id: 3141,
+  name: 'Hyperspace Testnet',
+  network: 'hyperspace',
+  nativeCurrency: {
+    decimals: 18,
+    name: 'Filecoin',
+    symbol: 'tFil',
+  },
+  rpcUrls: {
+    default: { http: ['https://hyperspace.node.glif.io/rpc/v1'] },
+    private: { http: ['https://hyperspace.node.glif.io/archive/lotus/rpc/v1'] },
+  },
+  blockExplorers: {
+    default: { name: 'Glif', url: 'https://explorer.glif.io' },
+  },
+  // testnet: true,
+}
+
+type ChainId = number
+type Config = {
+  appContractAddress: Address,
+  oracleContractAddress: Address,
+}
+
+export const CHAIN_CONFIG: Record<ChainId, Config> = {
+  [wallaby.id]: {
+    appContractAddress: '0x543e5568C36127E0584D32aeC08B3d28F444b050',
+    oracleContractAddress: '0xa043c1f92162c0d204391a1ad05a4aca3538fc7c',
+  },
+  [arbitrumGoerli.id]: {
+    appContractAddress: '0xDbf5B82C9b3Cd8291878b4d355368ab6e32b9A14',
+    oracleContractAddress: '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118',
+  },
+} as const
+
 
 // The <const> assertion enables wagmi to infer the correct types when using the ABI in hooks
 export const CONTRACT_ABI = <const>[

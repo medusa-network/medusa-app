@@ -1,9 +1,8 @@
 import { FC, useState, useEffect } from 'react'
-import { usePrepareContractWrite, useContractWrite, useWaitForTransaction } from 'wagmi'
-import { arbitrumGoerli } from 'wagmi/chains'
+import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useNetwork } from 'wagmi'
 import { HGamalEVMCipher } from '@medusa-network/medusa-sdk'
 
-import { CONTRACT_ABI, CONTRACT_ADDRESS } from '@/lib/consts'
+import { CHAIN_CONFIG, CONTRACT_ABI } from '@/lib/consts'
 import { parseEther } from 'ethers/lib/utils'
 import storeCiphertext from '@/lib/storeCiphertext'
 import toast from 'react-hot-toast'
@@ -12,6 +11,7 @@ import useGlobalStore from '@/stores/globalStore'
 import { Base64 } from 'js-base64'
 
 const ListingForm: FC = () => {
+  const { chain } = useNetwork()
   const medusa = useGlobalStore((state) => state.medusa)
 
   const [name, setName] = useState('')
@@ -24,12 +24,12 @@ const ListingForm: FC = () => {
   const [submitting, setSubmitting] = useState(false)
 
   const { config, error: prepareError, isError: isPrepareError, isSuccess: readyToSendTransaction } = usePrepareContractWrite({
-    address: CONTRACT_ADDRESS,
+    address: CHAIN_CONFIG[chain?.id]?.appContractAddress,
     abi: CONTRACT_ABI,
     functionName: 'createListing',
     args: [ciphertextKey, name, description, parseEther(price || '0.00'), `ipfs://${cid}/${name}`],
-    enabled: Boolean(cid),
-    chainId: arbitrumGoerli.id
+    enabled: Boolean(cid) && Boolean(chain),
+    chainId: chain?.id
   })
 
   const { data, error, isError, write: createListing } = useContractWrite(config)
@@ -73,7 +73,7 @@ const ListingForm: FC = () => {
     const buff = new TextEncoder().encode(plaintext)
     await medusa.fetchPublicKey()
     try {
-      const { encryptedData, encryptedKey } = await medusa.encrypt(buff, CONTRACT_ADDRESS);
+      const { encryptedData, encryptedKey } = await medusa.encrypt(buff, CHAIN_CONFIG[chain.id].appContractAddress);
       const b64EncryptedData = Base64.fromUint8Array(encryptedData)
       console.log("Encrypted KEY: ", encryptedKey);
       setCiphertextKey(encryptedKey)

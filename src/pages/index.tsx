@@ -1,8 +1,8 @@
 import { FC, useEffect } from 'react'
 import Head from 'next/head'
-import { useAccount, useContract, useContractEvent, useProvider, useSigner } from 'wagmi'
+import { useAccount, useContract, useContractEvent, useNetwork, useProvider, useSigner } from 'wagmi'
 
-import { APP_NAME, CONTRACT_ABI, CONTRACT_ADDRESS, ORACLE_ADDRESS } from '@/lib/consts'
+import { APP_NAME, CHAIN_CONFIG, CONTRACT_ABI } from '@/lib/consts'
 import ListingForm from '@/components/ListingForm'
 import Listings from '@/components/Listings'
 import { Listing, Sale, Decryption, default as useGlobalStore } from '@/stores/globalStore'
@@ -14,6 +14,7 @@ import { Toaster } from 'react-hot-toast'
 const Home: FC = () => {
   const provider = useProvider()
   const { address } = useAccount()
+  const { chain } = useNetwork()
 
   const updateListings = useGlobalStore((state) => state.updateListings)
   const updateSales = useGlobalStore((state) => state.updateSales)
@@ -22,8 +23,10 @@ const Home: FC = () => {
   const addSale = useGlobalStore((state) => state.addSale)
   const addDecryption = useGlobalStore((state) => state.addDecryption)
 
+  const chainConfig = CHAIN_CONFIG[chain?.id]
+
   useContractEvent({
-    address: CONTRACT_ADDRESS,
+    address: chainConfig?.appContractAddress,
     abi: CONTRACT_ABI,
     eventName: 'NewListing',
     listener(seller, cipherId, name, description, price, uri) {
@@ -32,7 +35,7 @@ const Home: FC = () => {
   })
 
   useContractEvent({
-    address: CONTRACT_ADDRESS,
+    address: chainConfig?.appContractAddress,
     abi: CONTRACT_ABI,
     eventName: 'NewSale',
     listener(buyer, seller, requestId, cipherId) {
@@ -43,7 +46,7 @@ const Home: FC = () => {
   })
 
   useContractEvent({
-    address: CONTRACT_ADDRESS,
+    address: chainConfig?.appContractAddress,
     abi: CONTRACT_ABI,
     eventName: 'ListingDecryption',
     listener(requestId, ciphertext) {
@@ -51,9 +54,8 @@ const Home: FC = () => {
     },
   })
 
-
   const medusaFans = useContract({
-    address: CONTRACT_ADDRESS,
+    address: chainConfig?.appContractAddress,
     abi: CONTRACT_ABI,
     signerOrProvider: provider
   })
