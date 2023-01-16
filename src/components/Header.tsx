@@ -7,9 +7,11 @@ import ConnectWallet from './ConnectWallet'
 import Signin from './Signin'
 import ThemeSwitcher from './ThemeSwitcher'
 import toast from 'react-hot-toast'
+import ChainSwitcher from './ChainSwitcher'
 
 const Header: FC = () => {
   const { isConnected, address } = useAccount()
+  console.log(isConnected, address)
 
   const handleFaucet = async (event: any) => {
     event.preventDefault()
@@ -51,8 +53,10 @@ const Header: FC = () => {
             >
               Faucet
             </button>
+            {/* <ChainSwitcher />*/}
             <ThemeSwitcher />
-            {isConnected ? <Signin /> : <ConnectWallet />}
+            <ConnectWallet />
+            {isConnected && <Signin />}
           </div>
         </div>
       </div>
