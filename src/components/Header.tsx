@@ -11,7 +11,6 @@ import ChainSwitcher from './ChainSwitcher'
 
 const Header: FC = () => {
   const { isConnected, address } = useAccount()
-  console.log(isConnected, address)
 
   const handleFaucet = async (event: any) => {
     event.preventDefault()
