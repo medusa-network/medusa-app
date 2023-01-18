@@ -50,9 +50,29 @@ const useGlobalStore = create<GlobalState>()((set) => ({
   updateSales: (sales: []) => set((state) => ({ sales })),
   updateDecryptions: (decryptions: []) => set((state) => ({ decryptions })),
 
-  addListing: (listing: Listing) => set((state) => ({ listings: [listing, ...state.listings] })),
-  addSale: (sale: Sale) => set((state) => ({ sales: [sale, ...state.sales] })),
-  addDecryption: (decryption: Decryption) => set((state) => ({ decryptions: [decryption, ...state.decryptions] })),
+  addListing: (listing: Listing) => set(({ listings }) => {
+    // Needed because of duplicate events bug in FVM
+    if (!listings.find(l => l.cipherId === listing.cipherId)) {
+      return { listings: [listing, ...listings] }
+    }
+    return { listings }
+  }),
+
+  addSale: (sale: Sale) => set(({ sales }) => {
+    // Needed because of duplicate events bug in FVM
+    if (!sales.find(s => s.requestId === sale.requestId)) {
+      return { sales: [sale, ...sales] }
+    }
+    return { sales }
+  }),
+
+  addDecryption: (decryption: Decryption) => set(({ decryptions }) => {
+    // Needed because of duplicate events bug in FVM
+    if (!decryptions.find(d => d.requestId === decryption.requestId)) {
+      return { decryptions: [decryption, ...decryptions] }
+    }
+    return { decryptions }
+  }),
 }))
 
 export default useGlobalStore
