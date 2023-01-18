@@ -5,12 +5,12 @@ export const APP_NAME = 'OnlyFiles' as const
 
 export const wallaby: Chain = {
   id: 31415,
-  name: 'Wallaby Testnet',
+  name: 'Filecoin Wallaby Testnet',
   network: 'wallaby',
   nativeCurrency: {
     decimals: 18,
     name: 'Filecoin',
-    symbol: 'tFil',
+    symbol: 'tFIL',
   },
   rpcUrls: {
     default: { http: ['https://wallaby.node.glif.io/rpc/v1'] },
@@ -18,28 +18,32 @@ export const wallaby: Chain = {
     // private: { http: ['https://hyperspace.node.glif.io/archive/lotus/rpc/v1'] },
   },
   blockExplorers: {
-    default: { name: 'Glif', url: 'https://explorer.glif.io' },
+    etherscan: { name: 'Filscan', url: 'https://wallaby.filscan.io/' },
+    default: { name: 'Filscan', url: 'https://wallaby.filscan.io/' },
   },
-  // testnet: true,
+  testnet: true,
 }
 
 export const hyperspace: Chain = {
   id: 3141,
-  name: 'Hyperspace Testnet',
+  name: 'Filecoin Hyperspace Testnet',
   network: 'hyperspace',
   nativeCurrency: {
     decimals: 18,
     name: 'Filecoin',
-    symbol: 'tFil',
+    symbol: 'tFIL',
   },
   rpcUrls: {
-    default: { http: ['https://hyperspace.node.glif.io/rpc/v1'] },
+    default: { http: ['https://api.hyperspace.node.glif.io/rpc/v1'] },
     private: { http: ['https://hyperspace.node.glif.io/archive/lotus/rpc/v1'] },
   },
   blockExplorers: {
-    default: { name: 'Glif', url: 'https://explorer.glif.io' },
+    etherscan: { name: 'Filfox', url: 'https://hyperspace.filfox.info/en' },
+    default: { name: 'Filfox', url: 'https://hyperspace.filfox.info/en' },
+    // etherscan: { name: 'Filscan', url: 'https://hyperspace.filscan.io/' },
+    // default: { name: 'Filscan', url: 'https://hyperspace.filscan.io/' },
   },
-  // testnet: true,
+  testnet: true,
 }
 
 type ChainId = number
@@ -57,6 +61,10 @@ export const CHAIN_CONFIG: Record<ChainId, Config> = {
     appContractAddress: '0xDbf5B82C9b3Cd8291878b4d355368ab6e32b9A14',
     oracleContractAddress: '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118',
   },
+  [hyperspace.id]: {
+    appContractAddress: '0x2c84E501f6c601d54AebbBb1a53aCA1DFB784A0E',
+    oracleContractAddress: '0xd466a3c66ad402aa296ab7544bce90bbe298f6a0',
+  }
 } as const
 
 
