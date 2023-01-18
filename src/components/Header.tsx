@@ -7,7 +7,6 @@ import ConnectWallet from './ConnectWallet'
 import Signin from './Signin'
 import ThemeSwitcher from './ThemeSwitcher'
 import toast from 'react-hot-toast'
-import ChainSwitcher from './ChainSwitcher'
 
 const Header: FC = () => {
   const { isConnected, address } = useAccount()
@@ -52,7 +51,6 @@ const Header: FC = () => {
             >
               Faucet
             </button>
-            {/* <ChainSwitcher />*/}
             <ThemeSwitcher />
             <ConnectWallet />
             {isConnected && <Signin />}

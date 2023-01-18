@@ -9,7 +9,6 @@ import Header from '@/components/Header'
 import { Toaster } from 'react-hot-toast'
 import EventsFetcher from '@/components/EventsFetcher'
 import useIsMounted from '@/hooks/useIsMounted'
-import ChainSwitcher from '@/components/ChainSwitcher'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
 import useSyncChain from '@/hooks/useSyncChain'
 
@@ -24,7 +23,6 @@ const Home: FC = () => {
 
   if (!isMounted) return null
 
-  // <ChainSwitcher />
   return (
     <>
       <EventsFetcher />
