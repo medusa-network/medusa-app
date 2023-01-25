@@ -1,19 +1,38 @@
 import { FC, useState } from 'react'
 import Link from 'next/link'
-import { useAccount } from 'wagmi'
+import { useAccount, useNetwork } from 'wagmi'
 
 import requestFaucet from '@/lib/requestFaucet'
 import ConnectWallet from './ConnectWallet'
 import Signin from './Signin'
 import ThemeSwitcher from './ThemeSwitcher'
 import toast from 'react-hot-toast'
+import { arbitrumGoerli } from 'wagmi/chains'
+import { hyperspace } from '@/lib/consts'
 
 const Header: FC = () => {
   const { isConnected, address } = useAccount()
+  const { chain } = useNetwork()
 
   const handleFaucet = async (event: any) => {
     event.preventDefault()
 
+    switch (chain.id) {
+      case arbitrumGoerli.id: {
+        handleArbitrumFaucet()
+        break
+      }
+      case hyperspace.id: {
+        window.open("https://hyperspace.yoga/#faucet", '_blank').focus();
+        break
+      }
+      default: {
+        break
+      }
+    }
+  }
+
+  const handleArbitrumFaucet = async () => {
     toast.promise(
       requestFaucet(address),
       {
