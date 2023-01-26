@@ -38,7 +38,14 @@ interface IEncryptionOracle {
         external
         returns (uint256);
 
+    /// @notice Request reencryption of a cipher text for a user
+    /// @dev msg.sender must be The "owner" or submitter of the ciphertext or the oracle will not reply
+    /// @param _cipherId the id of the ciphertext to reencrypt
+    /// @param _publicKey the public key of the recipient
+    /// @return the reencryption request id
     function requestReencryption(uint256 _cipherId, G1Point calldata _publickey) external returns (uint256);
+
+    function distributedKey() external view virtual returns (G1Point memory);
 }
 
 error CallbackNotAuthorized();
