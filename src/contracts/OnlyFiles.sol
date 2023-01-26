@@ -30,13 +30,15 @@ interface IEncryptionClient {
     function oracleResult(uint256 requestId, Ciphertext calldata _cipher) external;
 }
 
-interface IOracle {
+interface IEncryptionOracle {
     /// @notice submit a ciphertext that can be retrieved at the given link and
     /// has been created by this encryptor address. The ciphertext proof is checked
     /// and if correct, being signalled to Medusa.
     function submitCiphertext(Ciphertext calldata _cipher, bytes calldata _link, address _encryptor)
         external
         returns (uint256);
+
+    function requestReencryption(uint256 _cipherId, G1Point calldata _publickey) external returns (uint256);
 }
 
 error CallbackNotAuthorized();
@@ -51,7 +53,7 @@ struct Listing {
 
 contract OnlyFiles is IEncryptionClient, PullPayment {
     /// @notice The Encryption Oracle Instance
-    IOracle public oracle;
+    IEncryptionOracle public oracle;
 
     /// @notice A mapping from cipherId to listing
     mapping(uint256 => Listing) public listings;
@@ -69,7 +71,7 @@ contract OnlyFiles is IEncryptionClient, PullPayment {
         _;
     }
 
-    constructor(Oracle _oracle) {
+    constructor(IEncryptionOracle _oracle) {
         oracle = _oracle;
     }
 
