@@ -37,8 +37,8 @@ export const CHAIN_CONFIG: Record<ChainId, Config> = {
     oracleContractAddress: '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118',
   },
   [hyperspace.id]: {
-    appContractAddress: '0x2c84E501f6c601d54AebbBb1a53aCA1DFB784A0E',
-    oracleContractAddress: '0xd466a3c66ad402aa296ab7544bce90bbe298f6a0',
+    appContractAddress: '0xAD07af2959994e35b716bbde8f2b8f0323103b57',
+    oracleContractAddress: '0xb0dd3eb2374b21b6efacf41a16e25ed8114734e0',
   }
 } as const
 
