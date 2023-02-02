@@ -9,7 +9,7 @@ import { alchemyProvider } from 'wagmi/providers/alchemy';
 import { ConnectKitProvider, getDefaultClient } from 'connectkit'
 import { JsonRpcProvider } from '@ethersproject/providers'
 
-import { APP_NAME, hyperspace, wallaby } from '@/lib/consts'
+import { APP_NAME, hyperspace } from '@/lib/consts'
 import useChains from '@/hooks/useChains'
 
 type DefaultConnectorsProps = {
@@ -65,7 +65,7 @@ const Web3Provider = ({ children }) => {
       (chain: Chain) => ({
         chain,
         provider: () => {
-          if (chain.id === wallaby.id || chain.id === hyperspace.id) {
+          if (chain.id === hyperspace.id) {
             return new JsonRpcProvider({
               url: chain.rpcUrls.private.http[0],
               headers: { "Authorization": `Bearer ${process.env.NEXT_PUBLIC_GLIF_RPC_AUTH_TOKEN}` },

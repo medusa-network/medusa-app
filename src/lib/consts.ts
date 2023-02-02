@@ -3,27 +3,6 @@ import { arbitrumGoerli } from "wagmi/chains"
 
 export const APP_NAME = 'OnlyFiles' as const
 
-export const wallaby: Chain = {
-  id: 31415,
-  name: 'Filecoin Wallaby Testnet',
-  network: 'wallaby',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Filecoin',
-    symbol: 'tFIL',
-  },
-  rpcUrls: {
-    default: { http: ['https://wallaby.node.glif.io/rpc/v1'] },
-    private: { http: ['https://archive.wallaby.node.glif.io/lotus/rpc/v1'] },
-    // private: { http: ['https://hyperspace.node.glif.io/archive/lotus/rpc/v1'] },
-  },
-  blockExplorers: {
-    etherscan: { name: 'Filscan', url: 'https://wallaby.filscan.io/' },
-    default: { name: 'Filscan', url: 'https://wallaby.filscan.io/' },
-  },
-  testnet: true,
-}
-
 export const hyperspace: Chain = {
   id: 3141,
   name: 'Filecoin Hyperspace Testnet',
@@ -53,17 +32,13 @@ type Config = {
 }
 
 export const CHAIN_CONFIG: Record<ChainId, Config> = {
-  [wallaby.id]: {
-    appContractAddress: '0x543e5568C36127E0584D32aeC08B3d28F444b050',
-    oracleContractAddress: '0xa043c1f92162c0d204391a1ad05a4aca3538fc7c',
-  },
   [arbitrumGoerli.id]: {
     appContractAddress: '0xDbf5B82C9b3Cd8291878b4d355368ab6e32b9A14',
     oracleContractAddress: '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118',
   },
   [hyperspace.id]: {
-    appContractAddress: '0x2c84E501f6c601d54AebbBb1a53aCA1DFB784A0E',
-    oracleContractAddress: '0xd466a3c66ad402aa296ab7544bce90bbe298f6a0',
+    appContractAddress: '0xAD07af2959994e35b716bbde8f2b8f0323103b57',
+    oracleContractAddress: '0xb0dd3eb2374b21b6efacf41a16e25ed8114734e0',
   }
 } as const
 
