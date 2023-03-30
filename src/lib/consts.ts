@@ -1,7 +1,7 @@
 import { Address, Chain } from "wagmi"
 import { arbitrumGoerli } from "wagmi/chains"
 
-export const APP_NAME = 'OnlyFiles' as const
+export const APP_NAME = 'OnlyPrompts' as const
 
 export const hyperspace: Chain = {
   id: 3141,
