@@ -46,7 +46,7 @@ const Home: FC = () => {
             </div>
             <div className="flex text-center text-dark-secondary font-semibold justify-center sm:text-xl my-7 sm:my-4">
               <p className="ml-2">🤖 Contribute AI prompts</p>
-              <p className="ml-2">💰 <span className="text-green-500">Earn points</span></p>
+              <p className="ml-2">💰 <span className="text-green-500">Earn credits</span></p>
               <p className="ml-2">📜 Unlock more prompts!</p>
             </div>
             <UnlockPrompt description="Plug this prompt into GPT4 to learn about OnlyPrompts and the Medusa network" credits={5} />
