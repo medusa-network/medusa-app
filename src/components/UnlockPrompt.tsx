@@ -2,10 +2,9 @@ import { useState } from 'react';
 
 interface UnlockPromptProps {
   description: string;
-  credits: number;
 }
 
-const UnlockPrompt: React.FC<UnlockPromptProps> = ({ description, credits }) => {
+const UnlockPrompt: React.FC<UnlockPromptProps> = ({ description }) => {
   const [isUnlocked, setIsUnlocked] = useState(false);
 
   const handleUnlock = () => {

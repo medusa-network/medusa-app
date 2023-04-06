@@ -49,8 +49,8 @@ const Home: FC = () => {
               <p className="ml-2">💰 <span className="text-green-500">Earn credits</span></p>
               <p className="ml-2">📜 Unlock more prompts!</p>
             </div>
-            <UnlockPrompt description="Plug this prompt into GPT4 to learn about OnlyPrompts and the Medusa network" credits={5} />
-            <UnlockPrompt description="Generate website illustrations with GPT 4 (ASCII) - GPT can output tables, but did you know it can also illustrate website layouts? This can be used" credits={5} />
+            <UnlockPrompt description="Plug this prompt into GPT4 to learn about OnlyPrompts and the Medusa network" />
+            <UnlockPrompt description="Generate website illustrations with GPT 4 (ASCII) - GPT can output tables, but did you know it can also illustrate website layouts? This can be used" />
             <Footer />
           </div>
 
