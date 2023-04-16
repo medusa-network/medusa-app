@@ -2,15 +2,14 @@ import { FC, useEffect } from 'react'
 import Head from 'next/head'
 
 import { APP_NAME } from '@/lib/consts'
-import ListingForm from '@/components/ListingForm'
-import Listings from '@/components/Listings'
-import PurchasedSecrets from '@/components/PurchasedSecrets'
 import Header from '@/components/Header'
 import { Toaster } from 'react-hot-toast'
 import EventsFetcher from '@/components/EventsFetcher'
 import useIsMounted from '@/hooks/useIsMounted'
 import { useAccount, useNetwork, useSigner } from 'wagmi'
 import useSyncChain from '@/hooks/useSyncChain'
+import UnlockPrompt from '@/components/UnlockPrompt'
+import Footer from '@/components/Footer'
 
 const Home: FC = () => {
   const isMounted = useIsMounted()
@@ -23,9 +22,9 @@ const Home: FC = () => {
 
   if (!isMounted) return null
 
+  // <EventsFetcher /
   return (
     <>
-      <EventsFetcher />
       <Head>
         <title>{`Medusa - ${APP_NAME}`}</title>
         <meta name="viewport" content="initial-scale=1.0, width=device-width" />
@@ -36,23 +35,24 @@ const Home: FC = () => {
         reverseOrder={true}
       />
 
-      <Header />
+      <div className="min-h-screen">
+        <Header />
 
-      <div className="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-800 sm:items-center py-4 sm:pt-0">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8">
-          <div className="flex pt-8 justify-center sm:pt-0 my-7">
-            <h1 className="text-6xl font-mono font-light dark:text-white">{APP_NAME}</h1>
+        <div className="relative flex items-top justify-center sm:items-center py-4 sm:pt-0">
 
+          <div className="max-w-6xl mx-auto px-6 lg:px-8 flex flex-col justify-between space-y-10">
+            <div className="flex pt-0 justify-center sm:hidden">
+              <h1 className="text-5xl font-light dark:text-white">{APP_NAME}</h1>
+            </div>
+            <div className="flex text-center text-dark-secondary font-semibold justify-center sm:text-xl my-7 sm:my-4">
+              <p className="ml-2">🤖 Contribute AI prompts</p>
+              <p className="ml-2">💰 <span className="text-green-500">Earn credits</span></p>
+              <p className="ml-2">📜 Unlock more prompts!</p>
+            </div>
+            <UnlockPrompt description="Plug this prompt into GPT4 to learn about OnlyPrompts and the Medusa network" />
+            <UnlockPrompt description="Generate website illustrations with GPT 4 (ASCII) - GPT can output tables, but did you know it can also illustrate website layouts? This can be used" />
+            <Footer />
           </div>
-          <div className="flex justify-center sm:pt-0 my-7">
-            <p className="text-lg font-mono font-light dark:text-white ml-2">Encrypt & upload your content and set your price for people to see it!</p>
-          </div>
-
-          <ListingForm />
-
-          <PurchasedSecrets />
-
-          <Listings />
 
         </div>
       </div>

@@ -19,7 +19,7 @@ const Signin: FC = () => {
 
   if (medusa?.keypair) {
     return <button
-      className="bg-gray-700 hover:bg-gray-500 hover:cursor-pointer text-gray-50 py-2 px-4 rounded"
+      className="btn-secondary"
       onClick={() => medusa.setKeypair(null)}
     >
       Sign out
@@ -27,7 +27,7 @@ const Signin: FC = () => {
   }
 
   return <button
-    className="bg-gray-700 hover:bg-gray-500 hover:cursor-pointer text-gray-50 py-2 px-4 rounded"
+    className="btn-primary"
     onClick={() => signMessage()}
   >
     Sign in

@@ -133,7 +133,7 @@ const ListingForm: FC = () => {
 
         <div className="pt-8 text-center">
           <label className="block">
-            <span className="text-lg font-mono font-light dark:text-white my-4">Name</span>
+            <span className="text-lg font-light dark:text-white my-4">Name</span>
             <input
               required
               type="text"
@@ -147,7 +147,7 @@ const ListingForm: FC = () => {
 
         <div className="pt-4 text-center">
           <label className="block">
-            <span className="text-lg font-mono font-light dark:text-white my-4">Price</span>
+            <span className="text-lg font-light dark:text-white my-4">Price</span>
             <input
               required
               type="number"
@@ -161,7 +161,7 @@ const ListingForm: FC = () => {
         </div>
 
         <div className="pt-4 text-center">
-          <span className="text-lg font-mono font-light dark:text-white my-4">Description</span>
+          <span className="text-lg font-light dark:text-white my-4">Description</span>
           <label className="py-3 block">
             <textarea
               required
@@ -180,7 +180,7 @@ const ListingForm: FC = () => {
           <button
             type="submit"
             disabled={isLoading || submitting}
-            className="font-mono font-semibold mt-5 text-xl text-white py-4 px-4 rounded-sm transition-colors bg-indigo-600 dark:bg-indigo-800 hover:bg-black dark:hover:bg-gray-50 dark:hover:text-gray-900 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-25"
+            className="font-semibold mt-5 text-xl text-white py-4 px-4 rounded-sm transition-colors bg-indigo-600 dark:bg-indigo-800 hover:bg-black dark:hover:bg-gray-50 dark:hover:text-gray-900 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-25"
           >
             {isLoading || submitting ? 'Submitting...' : medusa?.keypair ? 'Sell your Secret' : 'Please sign in'}
           </button>

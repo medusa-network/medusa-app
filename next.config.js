@@ -6,4 +6,6 @@ const nextConfig = {
   }
 }
 
-module.exports = nextConfig
+const { withPlausibleProxy } = require('next-plausible')
+
+module.exports = withPlausibleProxy()(nextConfig)
