@@ -47,7 +47,7 @@ export const CONTRACT_ABI = <const>[
   {
     inputs: [
       {
-        internalType: 'contract BN254EncryptionOracle',
+        internalType: 'contract IEncryptionOracle',
         name: '_oracle',
         type: 'address',
       },
@@ -103,43 +103,9 @@ export const CONTRACT_ABI = <const>[
             name: 'cipher',
             type: 'uint256',
           },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'x',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'y',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct G1Point',
-            name: 'random2',
-            type: 'tuple',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'f',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'e',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct DleqProof',
-            name: 'dleq',
-            type: 'tuple',
-          },
         ],
         indexed: false,
-        internalType: 'struct Ciphertext',
+        internalType: 'struct ReencryptedCipher',
         name: 'ciphertext',
         type: 'tuple',
       },
@@ -355,6 +321,19 @@ export const CONTRACT_ABI = <const>[
     type: 'function',
   },
   {
+    inputs: [],
+    name: 'estimateGasForDeliverReencryption',
+    outputs: [
+      {
+        internalType: 'bool',
+        name: '',
+        type: 'bool',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
     inputs: [
       {
         internalType: 'uint256',
@@ -388,7 +367,7 @@ export const CONTRACT_ABI = <const>[
     name: 'oracle',
     outputs: [
       {
-        internalType: 'contract BN254EncryptionOracle',
+        internalType: 'contract IEncryptionOracle',
         name: '',
         type: 'address',
       },
@@ -427,42 +406,8 @@ export const CONTRACT_ABI = <const>[
             name: 'cipher',
             type: 'uint256',
           },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'x',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'y',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct G1Point',
-            name: 'random2',
-            type: 'tuple',
-          },
-          {
-            components: [
-              {
-                internalType: 'uint256',
-                name: 'f',
-                type: 'uint256',
-              },
-              {
-                internalType: 'uint256',
-                name: 'e',
-                type: 'uint256',
-              },
-            ],
-            internalType: 'struct DleqProof',
-            name: 'dleq',
-            type: 'tuple',
-          },
         ],
-        internalType: 'struct Ciphertext',
+        internalType: 'struct ReencryptedCipher',
         name: 'cipher',
         type: 'tuple',
       },
