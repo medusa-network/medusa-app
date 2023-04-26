@@ -1,5 +1,5 @@
 import { Address, Chain } from 'wagmi'
-import { arbitrumGoerli } from 'wagmi/chains'
+import { arbitrumGoerli, foundry } from 'wagmi/chains'
 
 export const APP_NAME = 'OnlyFiles' as const
 
@@ -32,6 +32,10 @@ type Config = {
 }
 
 export const CHAIN_CONFIG: Record<ChainId, Config> = {
+  [foundry.id]: {
+    appContractAddress: '0x8a791620dd6260079bf849dc5567adc3f2fdc318',
+    oracleContractAddress: '0xcafac3dd18ac6c6e92c921884f9e4176737c052c',
+  },
   [arbitrumGoerli.id]: {
     appContractAddress: '0xDbf5B82C9b3Cd8291878b4d355368ab6e32b9A14',
     oracleContractAddress: '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118',
@@ -98,15 +102,10 @@ export const CONTRACT_ABI = <const>[
             name: 'random',
             type: 'tuple',
           },
-          {
-            internalType: 'uint256',
-            name: 'cipher',
-            type: 'uint256',
-          },
         ],
         indexed: false,
         internalType: 'struct ReencryptedCipher',
-        name: 'ciphertext',
+        name: 'reencryptedCipher',
         type: 'tuple',
       },
     ],
@@ -127,6 +126,70 @@ export const CONTRACT_ABI = <const>[
         internalType: 'uint256',
         name: 'cipherId',
         type: 'uint256',
+      },
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct G1Point',
+            name: 'random',
+            type: 'tuple',
+          },
+          {
+            internalType: 'uint256',
+            name: 'cipher',
+            type: 'uint256',
+          },
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct G1Point',
+            name: 'random2',
+            type: 'tuple',
+          },
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'f',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'e',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct DleqProof',
+            name: 'dleq',
+            type: 'tuple',
+          },
+        ],
+        indexed: false,
+        internalType: 'struct Ciphertext',
+        name: 'ciphertext',
+        type: 'tuple',
       },
       {
         indexed: false,
@@ -321,19 +384,6 @@ export const CONTRACT_ABI = <const>[
     type: 'function',
   },
   {
-    inputs: [],
-    name: 'estimateGasForDeliverReencryption',
-    outputs: [
-      {
-        internalType: 'bool',
-        name: '',
-        type: 'bool',
-      },
-    ],
-    stateMutability: 'nonpayable',
-    type: 'function',
-  },
-  {
     inputs: [
       {
         internalType: 'uint256',
@@ -400,11 +450,6 @@ export const CONTRACT_ABI = <const>[
             internalType: 'struct G1Point',
             name: 'random',
             type: 'tuple',
-          },
-          {
-            internalType: 'uint256',
-            name: 'cipher',
-            type: 'uint256',
           },
         ],
         internalType: 'struct ReencryptedCipher',

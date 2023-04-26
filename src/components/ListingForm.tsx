@@ -30,13 +30,15 @@ const ListingForm: FC = () => {
   const [cid, setCid] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
+  const chainConfig = CHAIN_CONFIG[chain?.id]
+
   const {
     config,
     error: prepareError,
     isError: isPrepareError,
     isSuccess: readyToSendTransaction,
   } = usePrepareContractWrite({
-    address: CHAIN_CONFIG[chain?.id]?.appContractAddress,
+    address: chainConfig?.appContractAddress,
     abi: CONTRACT_ABI,
     functionName: 'createListing',
     args: [
@@ -58,12 +60,13 @@ const ListingForm: FC = () => {
   } = useContractWrite(config)
 
   useEffect(() => {
-    if (readyToSendTransaction) {
+    if (readyToSendTransaction && chainConfig) {
       toast.loading('Submitting secret to Medusa...')
+
       createListing?.()
       setCid('')
     }
-  }, [readyToSendTransaction])
+  }, [readyToSendTransaction, chainConfig])
 
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,

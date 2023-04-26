@@ -29,7 +29,6 @@ const getDefaultConnectors = ({ chains, appName }: DefaultConnectorsProps) => {
       chains,
       options: {
         shimDisconnect: true,
-        shimChainChangedDisconnect: true,
         UNSTABLE_shimOnConnectSelectAccount: false,
       },
     }),
@@ -43,7 +42,8 @@ const getDefaultConnectors = ({ chains, appName }: DefaultConnectorsProps) => {
     new WalletConnectConnector({
       chains,
       options: {
-        qrcode: false,
+        projectId: '5fb3cf357a1c47d4b669f134773cf1a0',
+        showQrModal: false,
       },
     }),
     new InjectedConnector({

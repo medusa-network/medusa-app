@@ -15,7 +15,10 @@ import {
   default as useGlobalStore,
 } from '@/stores/globalStore'
 import { BigNumber, ethers } from 'ethers'
-import { HGamalEVMCipher as Ciphertext } from '@medusa-network/medusa-sdk'
+import {
+  HGamalEVMCipher as Ciphertext,
+  HGamalEVMReencryptedCipher as ReencryptedCipher,
+} from '@medusa-network/medusa-sdk'
 
 const EventsFetcher: FC = () => {
   const provider = useProvider()
@@ -43,12 +46,21 @@ const EventsFetcher: FC = () => {
     listener(
       seller: string,
       cipherId: BigNumber,
+      ciphertext: Ciphertext,
       name: string,
       description: string,
       price: BigNumber,
       uri: string,
     ) {
-      addListing({ seller, cipherId, name, description, price, uri })
+      addListing({
+        seller,
+        cipherId,
+        ciphertext,
+        name,
+        description,
+        price,
+        uri,
+      })
     },
   })
 
@@ -72,8 +84,8 @@ const EventsFetcher: FC = () => {
     address: chainConfig?.appContractAddress,
     abi: CONTRACT_ABI,
     eventName: 'ListingDecryption',
-    listener(requestId: BigNumber, ciphertext: Ciphertext) {
-      addDecryption({ requestId, ciphertext })
+    listener(requestId: BigNumber, reencryptedCipher: ReencryptedCipher) {
+      addDecryption({ requestId, reencryptedCipher })
     },
   })
 
@@ -110,8 +122,17 @@ const EventsFetcher: FC = () => {
       )
       const listings = newListings.map((filterTopic: ethers.Event) => {
         const result = iface.parseLog(filterTopic)
-        const { seller, cipherId, name, description, price, uri } = result.args
-        return { seller, cipherId, name, description, price, uri } as Listing
+        const { seller, cipherId, ciphertext, name, description, price, uri } =
+          result.args
+        return {
+          seller,
+          cipherId,
+          ciphertext,
+          name,
+          description,
+          price,
+          uri,
+        } as Listing
       })
       updateListings(listings)
 
@@ -131,8 +152,8 @@ const EventsFetcher: FC = () => {
       const decryptions = listingDecryptions.map(
         (filterTopic: ethers.Event) => {
           const result = iface.parseLog(filterTopic)
-          const { requestId, ciphertext } = result.args
-          return { requestId, ciphertext } as Decryption
+          const { requestId, reencryptedCipher } = result.args
+          return { requestId, reencryptedCipher } as Decryption
         },
       )
       updateDecryptions(decryptions)

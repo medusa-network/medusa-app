@@ -1,10 +1,9 @@
-import { CHAIN_CONFIG, CONTRACT_ABI } from '@/lib/consts'
-import useMedusa from '@/hooks/useMedusa'
+import { FC, useEffect, useState } from 'react'
 import { Listing as ListingProps } from '@/stores/globalStore'
+import useMedusa from '@/hooks/useMedusa'
+import toast from 'react-hot-toast'
 import { BigNumber } from 'ethers'
 import { formatEther } from 'ethers/lib/utils'
-import { FC } from 'react'
-import toast from 'react-hot-toast'
 import {
   useAccount,
   useContractWrite,
@@ -13,6 +12,7 @@ import {
   useWaitForTransaction,
 } from 'wagmi'
 import Signin from '@/components/Signin'
+import { CHAIN_CONFIG, CONTRACT_ABI } from '@/lib/consts'
 
 const Listing: FC<ListingProps & { purchased: boolean }> = ({
   cipherId,
@@ -25,6 +25,22 @@ const Listing: FC<ListingProps & { purchased: boolean }> = ({
   const { isConnected } = useAccount()
   const { medusa } = useMedusa()
   const { chain } = useNetwork()
+  const [callbackGas, setCallbackGas] = useState(BigNumber.from(0))
+  useEffect(() => {
+    const getCallbackGas = async () => {
+      if (medusa) {
+        try {
+          const gas = await medusa.estimateCallbackGas(appContractAddress)
+          console.log(gas)
+
+          setCallbackGas(gas)
+        } catch (e) {
+          console.log(e)
+        }
+      }
+    }
+    getCallbackGas()
+  }, [medusa])
 
   let buyerPublicKey = null
   if (medusa?.keypair) {
@@ -32,13 +48,14 @@ const Listing: FC<ListingProps & { purchased: boolean }> = ({
     buyerPublicKey = { x, y }
   }
 
+  const appContractAddress = CHAIN_CONFIG[chain?.id]?.appContractAddress
   const { config } = usePrepareContractWrite({
-    address: CHAIN_CONFIG[chain?.id]?.appContractAddress,
+    address: appContractAddress,
     abi: CONTRACT_ABI,
     functionName: 'buyListing',
     args: [cipherId, buyerPublicKey],
     enabled: Boolean(buyerPublicKey) && Boolean(chain),
-    overrides: { value: price },
+    overrides: { value: price.add(callbackGas) },
     chainId: chain?.id,
   })
 
@@ -76,6 +93,9 @@ const Listing: FC<ListingProps & { purchased: boolean }> = ({
 
   const unlockSecret = async () => {
     toast.loading('Unlocking secret...')
+
+    const gas = await medusa.estimateCallbackGas(appContractAddress)
+    console.log('Gas to send for callback', gas)
     buyListing?.()
   }
 
