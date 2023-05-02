@@ -1,5 +1,5 @@
-import { Address, Chain } from "wagmi"
-import { arbitrumGoerli } from "wagmi/chains"
+import { Address, Chain } from 'wagmi'
+import { arbitrumGoerli, foundry } from 'wagmi/chains'
 
 export const APP_NAME = 'OnlyFiles' as const
 
@@ -27,11 +27,15 @@ export const hyperspace: Chain = {
 
 type ChainId = number
 type Config = {
-  appContractAddress: Address,
-  oracleContractAddress: Address,
+  appContractAddress: Address
+  oracleContractAddress: Address
 }
 
 export const CHAIN_CONFIG: Record<ChainId, Config> = {
+  [foundry.id]: {
+    appContractAddress: '0x8a791620dd6260079bf849dc5567adc3f2fdc318',
+    oracleContractAddress: '0xcafac3dd18ac6c6e92c921884f9e4176737c052c',
+  },
   [arbitrumGoerli.id]: {
     appContractAddress: '0xDbf5B82C9b3Cd8291878b4d355368ab6e32b9A14',
     oracleContractAddress: '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118',
@@ -39,495 +43,480 @@ export const CHAIN_CONFIG: Record<ChainId, Config> = {
   [hyperspace.id]: {
     appContractAddress: '0xAD07af2959994e35b716bbde8f2b8f0323103b57',
     oracleContractAddress: '0xb0dd3eb2374b21b6efacf41a16e25ed8114734e0',
-  }
+  },
 } as const
-
 
 // The <const> assertion enables wagmi to infer the correct types when using the ABI in hooks
 export const CONTRACT_ABI = <const>[
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "contract BN254EncryptionOracle",
-        "name": "_oracle",
-        "type": "address"
-      }
+        internalType: 'contract IEncryptionOracle',
+        name: '_oracle',
+        type: 'address',
+      },
     ],
-    "stateMutability": "nonpayable",
-    "type": "constructor"
+    stateMutability: 'nonpayable',
+    type: 'constructor',
   },
   {
-    "inputs": [],
-    "name": "CallbackNotAuthorized",
-    "type": "error"
+    inputs: [],
+    name: 'CallbackNotAuthorized',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "InsufficentFunds",
-    "type": "error"
+    inputs: [],
+    name: 'InsufficentFunds',
+    type: 'error',
   },
   {
-    "inputs": [],
-    "name": "ListingDoesNotExist",
-    "type": "error"
+    inputs: [],
+    name: 'ListingDoesNotExist',
+    type: 'error',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "requestId",
-        "type": "uint256"
+        indexed: true,
+        internalType: 'uint256',
+        name: 'requestId',
+        type: 'uint256',
       },
       {
-        "components": [
+        components: [
           {
-            "components": [
+            components: [
               {
-                "internalType": "uint256",
-                "name": "x",
-                "type": "uint256"
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
               },
               {
-                "internalType": "uint256",
-                "name": "y",
-                "type": "uint256"
-              }
-            ],
-            "internalType": "struct G1Point",
-            "name": "random",
-            "type": "tuple"
-          },
-          {
-            "internalType": "uint256",
-            "name": "cipher",
-            "type": "uint256"
-          },
-          {
-            "components": [
-              {
-                "internalType": "uint256",
-                "name": "x",
-                "type": "uint256"
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
               },
-              {
-                "internalType": "uint256",
-                "name": "y",
-                "type": "uint256"
-              }
             ],
-            "internalType": "struct G1Point",
-            "name": "random2",
-            "type": "tuple"
+            internalType: 'struct G1Point',
+            name: 'random',
+            type: 'tuple',
           },
-          {
-            "components": [
-              {
-                "internalType": "uint256",
-                "name": "f",
-                "type": "uint256"
-              },
-              {
-                "internalType": "uint256",
-                "name": "e",
-                "type": "uint256"
-              }
-            ],
-            "internalType": "struct DleqProof",
-            "name": "dleq",
-            "type": "tuple"
-          }
         ],
-        "indexed": false,
-        "internalType": "struct Ciphertext",
-        "name": "ciphertext",
-        "type": "tuple"
-      }
+        indexed: false,
+        internalType: 'struct ReencryptedCipher',
+        name: 'reencryptedCipher',
+        type: 'tuple',
+      },
     ],
-    "name": "ListingDecryption",
-    "type": "event"
+    name: 'ListingDecryption',
+    type: 'event',
   },
   {
-    "anonymous": false,
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "indexed": true,
-        "internalType": "address",
-        "name": "seller",
-        "type": "address"
+        indexed: true,
+        internalType: 'address',
+        name: 'seller',
+        type: 'address',
       },
       {
-        "indexed": true,
-        "internalType": "uint256",
-        "name": "cipherId",
-        "type": "uint256"
+        indexed: true,
+        internalType: 'uint256',
+        name: 'cipherId',
+        type: 'uint256',
       },
       {
-        "indexed": false,
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "price",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "string",
-        "name": "uri",
-        "type": "string"
-      }
-    ],
-    "name": "NewListing",
-    "type": "event"
-  },
-  {
-    "anonymous": false,
-    "inputs": [
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "buyer",
-        "type": "address"
-      },
-      {
-        "indexed": true,
-        "internalType": "address",
-        "name": "seller",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "requestId",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "cipherId",
-        "type": "uint256"
-      }
-    ],
-    "name": "NewSale",
-    "type": "event"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "cipherId",
-        "type": "uint256"
-      },
-      {
-        "components": [
+        components: [
           {
-            "internalType": "uint256",
-            "name": "x",
-            "type": "uint256"
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct G1Point',
+            name: 'random',
+            type: 'tuple',
           },
           {
-            "internalType": "uint256",
-            "name": "y",
-            "type": "uint256"
-          }
+            internalType: 'uint256',
+            name: 'cipher',
+            type: 'uint256',
+          },
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct G1Point',
+            name: 'random2',
+            type: 'tuple',
+          },
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'f',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'e',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct DleqProof',
+            name: 'dleq',
+            type: 'tuple',
+          },
         ],
-        "internalType": "struct G1Point",
-        "name": "buyerPublicKey",
-        "type": "tuple"
-      }
-    ],
-    "name": "buyListing",
-    "outputs": [
+        indexed: false,
+        internalType: 'struct Ciphertext',
+        name: 'ciphertext',
+        type: 'tuple',
+      },
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        indexed: false,
+        internalType: 'string',
+        name: 'name',
+        type: 'string',
+      },
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'description',
+        type: 'string',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'price',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'string',
+        name: 'uri',
+        type: 'string',
+      },
     ],
-    "stateMutability": "payable",
-    "type": "function"
+    name: 'NewListing',
+    type: 'event',
   },
   {
-    "inputs": [
+    anonymous: false,
+    inputs: [
       {
-        "components": [
+        indexed: true,
+        internalType: 'address',
+        name: 'buyer',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'address',
+        name: 'seller',
+        type: 'address',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'requestId',
+        type: 'uint256',
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'cipherId',
+        type: 'uint256',
+      },
+    ],
+    name: 'NewSale',
+    type: 'event',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'cipherId',
+        type: 'uint256',
+      },
+      {
+        components: [
           {
-            "components": [
-              {
-                "internalType": "uint256",
-                "name": "x",
-                "type": "uint256"
-              },
-              {
-                "internalType": "uint256",
-                "name": "y",
-                "type": "uint256"
-              }
-            ],
-            "internalType": "struct G1Point",
-            "name": "random",
-            "type": "tuple"
+            internalType: 'uint256',
+            name: 'x',
+            type: 'uint256',
           },
           {
-            "internalType": "uint256",
-            "name": "cipher",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'y',
+            type: 'uint256',
           },
-          {
-            "components": [
-              {
-                "internalType": "uint256",
-                "name": "x",
-                "type": "uint256"
-              },
-              {
-                "internalType": "uint256",
-                "name": "y",
-                "type": "uint256"
-              }
-            ],
-            "internalType": "struct G1Point",
-            "name": "random2",
-            "type": "tuple"
-          },
-          {
-            "components": [
-              {
-                "internalType": "uint256",
-                "name": "f",
-                "type": "uint256"
-              },
-              {
-                "internalType": "uint256",
-                "name": "e",
-                "type": "uint256"
-              }
-            ],
-            "internalType": "struct DleqProof",
-            "name": "dleq",
-            "type": "tuple"
-          }
         ],
-        "internalType": "struct Ciphertext",
-        "name": "cipher",
-        "type": "tuple"
+        internalType: 'struct G1Point',
+        name: 'buyerPublicKey',
+        type: 'tuple',
       },
-      {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      },
-      {
-        "internalType": "uint256",
-        "name": "price",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "uri",
-        "type": "string"
-      }
     ],
-    "name": "createListing",
-    "outputs": [
+    name: 'buyListing',
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    stateMutability: 'payable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "name": "listings",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "seller",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "price",
-        "type": "uint256"
-      },
-      {
-        "internalType": "string",
-        "name": "uri",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "oracle",
-    "outputs": [
-      {
-        "internalType": "contract BN254EncryptionOracle",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "requestId",
-        "type": "uint256"
-      },
-      {
-        "components": [
+        components: [
           {
-            "components": [
+            components: [
               {
-                "internalType": "uint256",
-                "name": "x",
-                "type": "uint256"
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
               },
               {
-                "internalType": "uint256",
-                "name": "y",
-                "type": "uint256"
-              }
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
+              },
             ],
-            "internalType": "struct G1Point",
-            "name": "random",
-            "type": "tuple"
+            internalType: 'struct G1Point',
+            name: 'random',
+            type: 'tuple',
           },
           {
-            "internalType": "uint256",
-            "name": "cipher",
-            "type": "uint256"
+            internalType: 'uint256',
+            name: 'cipher',
+            type: 'uint256',
           },
           {
-            "components": [
+            components: [
               {
-                "internalType": "uint256",
-                "name": "x",
-                "type": "uint256"
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
               },
               {
-                "internalType": "uint256",
-                "name": "y",
-                "type": "uint256"
-              }
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
+              },
             ],
-            "internalType": "struct G1Point",
-            "name": "random2",
-            "type": "tuple"
+            internalType: 'struct G1Point',
+            name: 'random2',
+            type: 'tuple',
           },
           {
-            "components": [
+            components: [
               {
-                "internalType": "uint256",
-                "name": "f",
-                "type": "uint256"
+                internalType: 'uint256',
+                name: 'f',
+                type: 'uint256',
               },
               {
-                "internalType": "uint256",
-                "name": "e",
-                "type": "uint256"
-              }
+                internalType: 'uint256',
+                name: 'e',
+                type: 'uint256',
+              },
             ],
-            "internalType": "struct DleqProof",
-            "name": "dleq",
-            "type": "tuple"
-          }
+            internalType: 'struct DleqProof',
+            name: 'dleq',
+            type: 'tuple',
+          },
         ],
-        "internalType": "struct Ciphertext",
-        "name": "cipher",
-        "type": "tuple"
-      }
+        internalType: 'struct Ciphertext',
+        name: 'cipher',
+        type: 'tuple',
+      },
+      {
+        internalType: 'string',
+        name: 'name',
+        type: 'string',
+      },
+      {
+        internalType: 'string',
+        name: 'description',
+        type: 'string',
+      },
+      {
+        internalType: 'uint256',
+        name: 'price',
+        type: 'uint256',
+      },
+      {
+        internalType: 'string',
+        name: 'uri',
+        type: 'string',
+      },
     ],
-    "name": "oracleResult",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+    name: 'createListing',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'nonpayable',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address",
-        "name": "dest",
-        "type": "address"
-      }
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
     ],
-    "name": "payments",
-    "outputs": [
+    name: 'listings',
+    outputs: [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
+        internalType: 'address',
+        name: 'seller',
+        type: 'address',
+      },
+      {
+        internalType: 'uint256',
+        name: 'price',
+        type: 'uint256',
+      },
+      {
+        internalType: 'string',
+        name: 'uri',
+        type: 'string',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [],
-    "name": "publicKey",
-    "outputs": [
+    inputs: [],
+    name: 'oracle',
+    outputs: [
       {
-        "components": [
+        internalType: 'contract IEncryptionOracle',
+        name: '',
+        type: 'address',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'uint256',
+        name: 'requestId',
+        type: 'uint256',
+      },
+      {
+        components: [
           {
-            "internalType": "uint256",
-            "name": "x",
-            "type": "uint256"
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct G1Point',
+            name: 'random',
+            type: 'tuple',
+          },
+        ],
+        internalType: 'struct ReencryptedCipher',
+        name: 'cipher',
+        type: 'tuple',
+      },
+    ],
+    name: 'oracleResult',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'dest',
+        type: 'address',
+      },
+    ],
+    name: 'payments',
+    outputs: [
+      {
+        internalType: 'uint256',
+        name: '',
+        type: 'uint256',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [],
+    name: 'publicKey',
+    outputs: [
+      {
+        components: [
+          {
+            internalType: 'uint256',
+            name: 'x',
+            type: 'uint256',
           },
           {
-            "internalType": "uint256",
-            "name": "y",
-            "type": "uint256"
-          }
+            internalType: 'uint256',
+            name: 'y',
+            type: 'uint256',
+          },
         ],
-        "internalType": "struct G1Point",
-        "name": "",
-        "type": "tuple"
-      }
+        internalType: 'struct G1Point',
+        name: '',
+        type: 'tuple',
+      },
     ],
-    "stateMutability": "view",
-    "type": "function"
+    stateMutability: 'view',
+    type: 'function',
   },
   {
-    "inputs": [
+    inputs: [
       {
-        "internalType": "address payable",
-        "name": "payee",
-        "type": "address"
-      }
+        internalType: 'address payable',
+        name: 'payee',
+        type: 'address',
+      },
     ],
-    "name": "withdrawPayments",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  }
+    name: 'withdrawPayments',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
 ]
