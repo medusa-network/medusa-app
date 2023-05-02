@@ -15,9 +15,11 @@ export default function useMedusa() {
     Medusa<SecretKey, PublicKey<SecretKey>>
   > => {
     if (!signer) return
+
     const medusa = await Medusa.init(
       CHAIN_CONFIG[chain?.id]?.oracleContractAddress,
       signer,
+      'localhost',
     )
     await medusa.signForKeypair()
     updateMedusa(medusa)
