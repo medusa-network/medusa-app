@@ -1,8 +1,19 @@
 import { FC, useEffect } from 'react'
-import { useAccount, useContract, useContractEvent, useNetwork, useProvider } from 'wagmi'
+import {
+  useAccount,
+  useContract,
+  useContractEvent,
+  useNetwork,
+  useProvider,
+} from 'wagmi'
 
 import { CHAIN_CONFIG, CONTRACT_ABI } from '@/lib/consts'
-import { Listing, Sale, Decryption, default as useGlobalStore } from '@/stores/globalStore'
+import {
+  Listing,
+  Sale,
+  Decryption,
+  default as useGlobalStore,
+} from '@/stores/globalStore'
 import { BigNumber, ethers } from 'ethers'
 import { HGamalEVMCipher as Ciphertext } from '@medusa-network/medusa-sdk'
 
@@ -29,7 +40,14 @@ const EventsFetcher: FC = () => {
     address: chainConfig?.appContractAddress,
     abi: CONTRACT_ABI,
     eventName: 'NewListing',
-    listener(seller: string, cipherId: BigNumber, name: string, description: string, price: BigNumber, uri: string) {
+    listener(
+      seller: string,
+      cipherId: BigNumber,
+      name: string,
+      description: string,
+      price: BigNumber,
+      uri: string,
+    ) {
       addListing({ seller, cipherId, name, description, price, uri })
     },
   })
@@ -38,7 +56,12 @@ const EventsFetcher: FC = () => {
     address: chainConfig?.appContractAddress,
     abi: CONTRACT_ABI,
     eventName: 'NewSale',
-    listener(buyer: string, seller: string, requestId: BigNumber, cipherId: BigNumber) {
+    listener(
+      buyer: string,
+      seller: string,
+      requestId: BigNumber,
+      cipherId: BigNumber,
+    ) {
       if (buyer === address) {
         addSale({ buyer, seller, requestId, cipherId })
       }
@@ -57,24 +80,34 @@ const EventsFetcher: FC = () => {
   const medusaFans = useContract({
     address: chainConfig?.appContractAddress,
     abi: CONTRACT_ABI,
-    signerOrProvider: provider
+    signerOrProvider: provider,
   })
 
   useEffect(() => {
-    const getEventsForFilter = async (filter: ethers.EventFilter): Promise<ethers.Event[]> => {
+    const getEventsForFilter = async (
+      filter: ethers.EventFilter,
+    ): Promise<ethers.Event[]> => {
       const events = await medusaFans.queryFilter(filter)
-      return events.reverse().filter(event => !event.removed)
-        .filter((value, index, self) =>
-          index === self.findIndex((t) => (
-            t.transactionHash === value.transactionHash && t.logIndex === value.logIndex
-          ))
+      return events
+        .reverse()
+        .filter((event) => !event.removed)
+        .filter(
+          (value, index, self) =>
+            index ===
+            self.findIndex(
+              (t) =>
+                t.transactionHash === value.transactionHash &&
+                t.logIndex === value.logIndex,
+            ),
         )
     }
 
     const getEvents = async () => {
       const iface = new ethers.utils.Interface(CONTRACT_ABI)
 
-      const newListings = await getEventsForFilter(medusaFans.filters.NewListing())
+      const newListings = await getEventsForFilter(
+        medusaFans.filters.NewListing(),
+      )
       const listings = newListings.map((filterTopic: ethers.Event) => {
         const result = iface.parseLog(filterTopic)
         const { seller, cipherId, name, description, price, uri } = result.args
@@ -82,7 +115,9 @@ const EventsFetcher: FC = () => {
       })
       updateListings(listings)
 
-      const newSales = await getEventsForFilter(medusaFans.filters.NewSale(address))
+      const newSales = await getEventsForFilter(
+        medusaFans.filters.NewSale(address),
+      )
       const sales = newSales.map((filterTopic: ethers.Event) => {
         const result = iface.parseLog(filterTopic)
         const { buyer, seller, requestId, cipherId } = result.args
@@ -90,12 +125,16 @@ const EventsFetcher: FC = () => {
       })
       updateSales(sales)
 
-      const listingDecryptions = await getEventsForFilter(medusaFans.filters.ListingDecryption())
-      const decryptions = listingDecryptions.map((filterTopic: ethers.Event) => {
-        const result = iface.parseLog(filterTopic)
-        const { requestId, ciphertext } = result.args
-        return { requestId, ciphertext } as Decryption
-      })
+      const listingDecryptions = await getEventsForFilter(
+        medusaFans.filters.ListingDecryption(),
+      )
+      const decryptions = listingDecryptions.map(
+        (filterTopic: ethers.Event) => {
+          const result = iface.parseLog(filterTopic)
+          const { requestId, ciphertext } = result.args
+          return { requestId, ciphertext } as Decryption
+        },
+      )
       updateDecryptions(decryptions)
     }
     if (medusaFans) {

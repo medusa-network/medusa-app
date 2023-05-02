@@ -1,11 +1,11 @@
-import { useSwitchNetwork } from 'wagmi';
-import { getProvider } from '@wagmi/core';
-import { VoidSigner } from 'ethers';
-import { Medusa } from '@medusa-network/medusa-sdk';
+import { useSwitchNetwork } from 'wagmi'
+import { getProvider } from '@wagmi/core'
+import { VoidSigner } from 'ethers'
+import { Medusa } from '@medusa-network/medusa-sdk'
 
 import useGlobalStore from '@/stores/globalStore'
-import { CHAIN_CONFIG } from '@/lib/consts';
-import { useCallback } from 'react';
+import { CHAIN_CONFIG } from '@/lib/consts'
+import { useCallback } from 'react'
 
 export default function useSwitchChain() {
   const { switchNetworkAsync } = useSwitchNetwork()
@@ -27,12 +27,15 @@ export default function useSwitchChain() {
       if (medusa) {
         const newMedusa = await Medusa.init(
           CHAIN_CONFIG[chainId].oracleContractAddress,
-          new VoidSigner(await medusa.signer.getAddress(), getProvider({ chainId }))
+          new VoidSigner(
+            await medusa.signer.getAddress(),
+            getProvider({ chainId }),
+          ),
         )
         newMedusa.setKeypair(medusa.keypair)
         updateMedusa(newMedusa)
       }
-    }, [switchNetworkAsync]
+    },
+    [switchNetworkAsync],
   )
 }
-

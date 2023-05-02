@@ -17,7 +17,7 @@ export default async function requestFaucet(address: string): Promise<string> {
     },
     body: JSON.stringify({
       address,
-    })
+    }),
   }
 
   const response = await fetch(endpoint, options)
