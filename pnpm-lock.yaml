@@ -5,8 +5,8 @@ dependencies:
     specifier: ^1.0.6
     version: 1.0.6(react@18.1.0)
   '@medusa-network/medusa-sdk':
-    specifier: 0.0.2
-    version: 0.0.2(ts-node@10.9.1)(typescript@4.9.5)
+    specifier: 0.1.0-rc2
+    version: 0.1.0-rc2(ts-node@10.9.1)(typescript@4.9.5)
   '@tailwindcss/forms':
     specifier: ^0.5.3
     version: 0.5.3(tailwindcss@3.3.0)
@@ -17,7 +17,7 @@ dependencies:
     specifier: ^1.2.2
     version: 1.2.2(ethers@5.7.2)(react-dom@18.1.0)(react-is@18.2.0)(react@18.1.0)(wagmi@0.12.10)
   ethers:
-    specifier: ^5.7.1
+    specifier: ^5
     version: 5.7.2
   js-base64:
     specifier: ^3.7.3
@@ -849,8 +849,8 @@ packages:
       '@lit-labs/ssr-dom-shim': 1.1.1
     dev: false
 
-  /@medusa-network/medusa-sdk@0.0.2(ts-node@10.9.1)(typescript@4.9.5):
-    resolution: {integrity: sha512-9haBu59rjY4csBmbUk7pvzWcSTXorf5VI+qDFGPqQHP/JP7ZZH9KzNLVkCBcO/iZUZqt8xNvksXn7qP66iAJtw==}
+  /@medusa-network/medusa-sdk@0.1.0-rc2(ts-node@10.9.1)(typescript@4.9.5):
+    resolution: {integrity: sha512-5CYXu/mw1XP4w4U7Jb0EE35Zjc3WKU9zGySmkkfW8lAONbsTm+5XXVzvSrtTiwRyuZ5JOptpB5peEVlwsjBvKg==}
     engines: {node: '>=16.0.0'}
     dependencies:
       ffjavascript: 0.2.57
