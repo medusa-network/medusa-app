@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useAccount, useNetwork } from 'wagmi';
-import useChains from './useChains';
-import useSwitchChain from './useSwitchChain';
+import { useEffect } from 'react'
+import { useAccount, useNetwork } from 'wagmi'
+import useChains from './useChains'
+import useSwitchChain from './useSwitchChain'
 
 export default function useSyncChain() {
   const { isConnected } = useAccount()

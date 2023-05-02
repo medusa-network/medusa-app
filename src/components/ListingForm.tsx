@@ -1,5 +1,10 @@
 import { FC, useState, useEffect } from 'react'
-import { usePrepareContractWrite, useContractWrite, useWaitForTransaction, useNetwork } from 'wagmi'
+import {
+  usePrepareContractWrite,
+  useContractWrite,
+  useWaitForTransaction,
+  useNetwork,
+} from 'wagmi'
 import { HGamalEVMCipher } from '@medusa-network/medusa-sdk'
 
 import { CHAIN_CONFIG, CONTRACT_ABI } from '@/lib/consts'
@@ -23,24 +28,40 @@ const ListingForm: FC = () => {
   const [cid, setCid] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const { config, error: prepareError, isError: isPrepareError, isSuccess: readyToSendTransaction } = usePrepareContractWrite({
+  const {
+    config,
+    error: prepareError,
+    isError: isPrepareError,
+    isSuccess: readyToSendTransaction,
+  } = usePrepareContractWrite({
     address: CHAIN_CONFIG[chain?.id]?.appContractAddress,
     abi: CONTRACT_ABI,
     functionName: 'createListing',
-    args: [ciphertextKey, name, description, parseEther(price || '0.00'), `ipfs://${cid}/${name}`],
+    args: [
+      ciphertextKey,
+      name,
+      description,
+      parseEther(price || '0.00'),
+      `ipfs://${cid}/${name}`,
+    ],
     enabled: Boolean(cid) && Boolean(chain),
-    chainId: chain?.id
+    chainId: chain?.id,
   })
 
-  const { data, error, isError, write: createListing } = useContractWrite(config)
+  const {
+    data,
+    error,
+    isError,
+    write: createListing,
+  } = useContractWrite(config)
 
   useEffect(() => {
     if (readyToSendTransaction) {
-      toast.loading("Submitting secret to Medusa...")
+      toast.loading('Submitting secret to Medusa...')
       createListing?.()
       setCid('')
     }
-  }, [readyToSendTransaction]);
+  }, [readyToSendTransaction])
 
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,
@@ -54,68 +75,85 @@ const ListingForm: FC = () => {
           rel="noreferrer"
         >
           Secret successfully submitted to Medusa! View on Etherscan
-          <svg className="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path></svg>
-        </a>
-
+          <svg
+            className="ml-2 w-5 h-5"
+            fill="currentColor"
+            viewBox="0 0 20 20"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path>
+            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path>
+          </svg>
+        </a>,
       )
     },
     onError: (e) => {
       toast.dismiss()
       toast.error(`Failed to submit secret to Medusa: ${e.message}`)
-    }
+    },
   })
 
   const handleSubmit = async (event: any) => {
     event.preventDefault()
     setSubmitting(true)
-    console.log("Submitting new listing");
+    console.log('Submitting new listing')
 
     const buff = new TextEncoder().encode(plaintext)
     await medusa.fetchPublicKey()
     try {
-      const { encryptedData, encryptedKey } = await medusa.encrypt(buff, CHAIN_CONFIG[chain.id].appContractAddress);
+      const { encryptedData, encryptedKey } = await medusa.encrypt(
+        buff,
+        CHAIN_CONFIG[chain.id].appContractAddress,
+      )
       const b64EncryptedData = Base64.fromUint8Array(encryptedData)
-      console.log("Encrypted KEY: ", encryptedKey);
+      console.log('Encrypted KEY: ', encryptedKey)
       setCiphertextKey(encryptedKey)
 
-      toast.promise(
-        storeCiphertext(name, b64EncryptedData),
-        {
-          loading: 'Uploading encrypted secret to IPFS...',
-          success: (cid) => {
-            setCid(cid)
-            return <a
+      toast.promise(storeCiphertext(name, b64EncryptedData), {
+        loading: 'Uploading encrypted secret to IPFS...',
+        success: (cid) => {
+          setCid(cid)
+          return (
+            <a
               href={ipfsGatewayLink(cid)}
               className="inline-flex items-center text-blue-600 hover:underline"
               target="_blank"
               rel="noreferrer"
             >
               View secret on IPFS
-              <svg className="ml-2 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path></svg>
+              <svg
+                className="ml-2 w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path>
+                <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path>
+              </svg>
             </a>
-          },
-          error: (error) => `Error uploading to IPFS: ${error.message}`
-        }
-      )
+          )
+        },
+        error: (error) => `Error uploading to IPFS: ${error.message}`,
+      })
     } catch (e) {
-      console.log("Encryption or storeCiphertext API call Failed: ", e);
+      console.log('Encryption or storeCiphertext API call Failed: ', e)
     }
     setSubmitting(false)
   }
 
   const handleFileChange = (event: any) => {
-    toast.success("File uploaded successfully!")
+    toast.success('File uploaded successfully!')
     const file = event.target.files[0]
     setName(file.name)
     const reader = new FileReader()
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(file)
     reader.onload = (event) => {
       const plaintext = event.target?.result as string
       setPlaintext(plaintext)
     }
     reader.onerror = (error) => {
-      console.log('File Input Error: ', error);
-    };
+      console.log('File Input Error: ', error)
+    }
   }
 
   return (
@@ -123,17 +161,26 @@ const ListingForm: FC = () => {
       <form className="lg:w-1/2 lg:mx-auto" onSubmit={handleSubmit}>
         <div className="flex items-center justify-center">
           <label className="w-64 flex flex-col items-center px-4 py-6 rounded-lg shadow-lg tracking-wide border border-blue cursor-pointer hover:bg-gray-800 hover:text-white dark:hover:text-blue-400">
-            <svg className="w-8 h-8" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+            <svg
+              className="w-8 h-8"
+              fill="currentColor"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+            >
               <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z" />
             </svg>
-            <span className="mt-2 text-base leading-normal">{name ?? "SELECT A FILE"}</span>
+            <span className="mt-2 text-base leading-normal">
+              {name ?? 'SELECT A FILE'}
+            </span>
             <input type='file' className="hidden" onChange={handleFileChange} />
           </label>
         </div>
 
         <div className="pt-8 text-center">
           <label className="block">
-            <span className="text-lg font-mono font-light dark:text-white my-4">Name</span>
+            <span className="text-lg font-mono font-light dark:text-white my-4">
+              Name
+            </span>
             <input
               required
               type="text"
@@ -147,7 +194,9 @@ const ListingForm: FC = () => {
 
         <div className="pt-4 text-center">
           <label className="block">
-            <span className="text-lg font-mono font-light dark:text-white my-4">Price</span>
+            <span className="text-lg font-mono font-light dark:text-white my-4">
+              Price
+            </span>
             <input
               required
               type="number"
@@ -161,7 +210,9 @@ const ListingForm: FC = () => {
         </div>
 
         <div className="pt-4 text-center">
-          <span className="text-lg font-mono font-light dark:text-white my-4">Description</span>
+          <span className="text-lg font-mono font-light dark:text-white my-4">
+            Description
+          </span>
           <label className="py-3 block">
             <textarea
               required
@@ -173,24 +224,23 @@ const ListingForm: FC = () => {
             ></textarea>
           </label>
         </div>
-        <div
-
-          className="text-center w-full"
-        >
+        <div className="text-center w-full">
           <button
             type="submit"
             disabled={isLoading || submitting}
             className="font-mono font-semibold mt-5 text-xl text-white py-4 px-4 rounded-sm transition-colors bg-indigo-600 dark:bg-indigo-800 hover:bg-black dark:hover:bg-gray-50 dark:hover:text-gray-900 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-25"
           >
-            {isLoading || submitting ? 'Submitting...' : medusa?.keypair ? 'Sell your Secret' : 'Please sign in'}
+            {isLoading || submitting
+              ? 'Submitting...'
+              : medusa?.keypair
+              ? 'Sell your Secret'
+              : 'Please sign in'}
           </button>
         </div>
-        {
-          (isPrepareError || isError) && (
-            <div>Error: {(prepareError || error)?.message}</div>
-          )
-        }
-      </form >
+        {(isPrepareError || isError) && (
+          <div>Error: {(prepareError || error)?.message}</div>
+        )}
+      </form>
     </>
   )
 }

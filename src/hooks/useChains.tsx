@@ -8,19 +8,29 @@ const SUPPORTED_CHAINS = [arbitrumGoerli, hyperspace, mainnet]
 export default function useChains() {
   const router = useRouter()
   let { chain } = router.query
-  if (!chain) return { defaultChain: SUPPORTED_CHAINS[0], supportedChains: SUPPORTED_CHAINS }
+  if (!chain)
+    return {
+      defaultChain: SUPPORTED_CHAINS[0],
+      supportedChains: SUPPORTED_CHAINS,
+    }
 
-  if (!(typeof chain === "string")) {
+  if (!(typeof chain === 'string')) {
     chain = chain[0]
   }
 
-  const defaultChain = SUPPORTED_CHAINS.find(c => c.network === chain)
+  const defaultChain = SUPPORTED_CHAINS.find((c) => c.network === chain)
   if (defaultChain) {
     return {
       defaultChain,
-      supportedChains: [defaultChain, ...SUPPORTED_CHAINS.filter(c => c !== defaultChain)]
+      supportedChains: [
+        defaultChain,
+        ...SUPPORTED_CHAINS.filter((c) => c !== defaultChain),
+      ],
     }
   }
 
-  return { defaultChain: SUPPORTED_CHAINS[0], supportedChains: SUPPORTED_CHAINS }
+  return {
+    defaultChain: SUPPORTED_CHAINS[0],
+    supportedChains: SUPPORTED_CHAINS,
+  }
 }

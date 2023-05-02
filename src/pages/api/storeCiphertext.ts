@@ -4,9 +4,9 @@ import { Web3Storage, File } from 'web3.storage'
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '10mb'
-    }
-  }
+      sizeLimit: '10mb',
+    },
+  },
 }
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
