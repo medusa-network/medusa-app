@@ -25,6 +25,9 @@ dependencies:
   next:
     specifier: 12.3.1
     version: 12.3.1(@babel/core@7.21.3)(react-dom@18.1.0)(react@18.1.0)
+  next-plausible:
+    specifier: ^3.7.2
+    version: 3.7.2(next@12.3.1)(react-dom@18.1.0)(react@18.1.0)
   next-themes:
     specifier: ^0.2.0
     version: 0.2.1(next@12.3.1)(react-dom@18.1.0)(react@18.1.0)
@@ -6019,6 +6022,18 @@ packages:
 
   /neverthrow@4.4.2:
     resolution: {integrity: sha512-QVY0ylzBF71pUdLshRrqtweMgqKnE3R37/T82Z5bhO/z8P9z96PC/5pEl2FmiZSy0p+3lsjKerh6jmTWM5fv2g==}
+    dev: false
+
+  /next-plausible@3.7.2(next@12.3.1)(react-dom@18.1.0)(react@18.1.0):
+    resolution: {integrity: sha512-9PqFiVtD1kZO5gHFYTcgilHhg2WhMzD6I4NK/RUh9DGavD1N11IhNAvyGLFmvB3f4FtHC9IoAsauYDtQBt+riA==}
+    peerDependencies:
+      next: ^11.1.0 || ^12.0.0 || ^13.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      next: 12.3.1(@babel/core@7.21.3)(react-dom@18.1.0)(react@18.1.0)
+      react: 18.1.0
+      react-dom: 18.1.0(react@18.1.0)
     dev: false
 
   /next-themes@0.2.1(next@12.3.1)(react-dom@18.1.0)(react@18.1.0):
