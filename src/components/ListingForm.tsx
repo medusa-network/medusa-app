@@ -4,6 +4,7 @@ import {
   useContractWrite,
   useWaitForTransaction,
   useNetwork,
+  useAccount,
 } from 'wagmi'
 import { HGamalEVMCipher } from '@medusa-network/medusa-sdk'
 
@@ -14,12 +15,14 @@ import toast from 'react-hot-toast'
 import { ipfsGatewayLink } from '@/lib/utils'
 import useGlobalStore from '@/stores/globalStore'
 import { Base64 } from 'js-base64'
+import useMedusa from '@/hooks/useMedusa'
 
 const ListingForm: FC = () => {
   const { chain } = useNetwork()
-  const medusa = useGlobalStore((state) => state.medusa)
+  const { medusa, signed: medusaSigned, signMessage } = useMedusa()
+  const { isConnected } = useAccount()
 
-  const [name, setName] = useState('')
+  const [name, setName] = useState<string | null>()
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
 
@@ -96,12 +99,17 @@ const ListingForm: FC = () => {
   const handleSubmit = async (event: any) => {
     event.preventDefault()
     setSubmitting(true)
+    let signedMedusa = medusa
+    if (!medusaSigned) {
+      signedMedusa = await signMessage()
+    }
+
     console.log('Submitting new listing')
 
     const buff = new TextEncoder().encode(plaintext)
-    await medusa.fetchPublicKey()
+    await signedMedusa.fetchPublicKey()
     try {
-      const { encryptedData, encryptedKey } = await medusa.encrypt(
+      const { encryptedData, encryptedKey } = await signedMedusa.encrypt(
         buff,
         CHAIN_CONFIG[chain.id].appContractAddress,
       )
@@ -160,7 +168,7 @@ const ListingForm: FC = () => {
     <>
       <form className="lg:w-1/2 lg:mx-auto" onSubmit={handleSubmit}>
         <div className="flex items-center justify-center">
-          <label className="w-64 flex flex-col items-center px-4 py-6 rounded-lg shadow-lg tracking-wide border border-blue cursor-pointer hover:bg-gray-800 hover:text-white dark:hover:text-blue-400">
+          <label className="w-64 flex flex-col items-center px-4 py-6 rounded-lg shadow-lg tracking-wide border-2 hover:border-dark-secondary cursor-pointer hover:bg-off-white hover:text-dark-secondary transition-colors">
             <svg
               className="w-8 h-8"
               fill="currentColor"
@@ -170,7 +178,7 @@ const ListingForm: FC = () => {
               <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z" />
             </svg>
             <span className="mt-2 text-base leading-normal">
-              {name ?? 'SELECT A FILE'}
+              {name ?? 'SELL A FILE'}
             </span>
             <input type='file' className="hidden" onChange={handleFileChange} />
           </label>
@@ -178,14 +186,12 @@ const ListingForm: FC = () => {
 
         <div className="pt-8 text-center">
           <label className="block">
-            <span className="text-lg font-mono font-light dark:text-white my-4">
-              Name
-            </span>
+            <span className="text-lg my-4">Name</span>
             <input
               required
               type="text"
-              placeholder="dEaD-creds.txt"
-              className="form-input my-5 block w-full dark:bg-gray-800 dark:text-white"
+              placeholder="filename.txt"
+              className="form-input my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-dark-primary"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
@@ -194,14 +200,12 @@ const ListingForm: FC = () => {
 
         <div className="pt-4 text-center">
           <label className="block">
-            <span className="text-lg font-mono font-light dark:text-white my-4">
-              Price
-            </span>
+            <span className="text-lg my-4">Price</span>
             <input
               required
               type="number"
               placeholder="ETH"
-              className="form-input my-5 block w-full dark:bg-gray-800 dark:text-white"
+              className="form-input my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-dark-primary"
               value={price}
               min={0}
               onChange={(e) => setPrice(e.target.value)}
@@ -210,31 +214,29 @@ const ListingForm: FC = () => {
         </div>
 
         <div className="pt-4 text-center">
-          <span className="text-lg font-mono font-light dark:text-white my-4">
-            Description
-          </span>
+          <span className="text-lg my-4">Description</span>
           <label className="py-3 block">
             <textarea
               required
-              className="form-textarea mt-1 block w-full h-24 dark:bg-gray-800 dark:text-white"
+              className="form-textarea mt-1 block w-full h-24 focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-dark-primary"
               rows={3}
-              placeholder="Buy access to the private key for the 0xdEaD address"
+              placeholder="Buy access to my top secret file!"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-            ></textarea>
+            />
           </label>
         </div>
         <div className="text-center w-full">
           <button
             type="submit"
-            disabled={isLoading || submitting}
-            className="font-mono font-semibold mt-5 text-xl text-white py-4 px-4 rounded-sm transition-colors bg-indigo-600 dark:bg-indigo-800 hover:bg-black dark:hover:bg-gray-50 dark:hover:text-gray-900 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-25"
+            disabled={isLoading || submitting || !isConnected}
+            className="btn-primary font-semibold mt-5 text-xl py-4 px-4 disabled:cursor-not-allowed disabled:opacity-25"
           >
             {isLoading || submitting
               ? 'Submitting...'
-              : medusa?.keypair
+              : isConnected
               ? 'Sell your Secret'
-              : 'Please sign in'}
+              : 'Connect your Wallet'}
           </button>
         </div>
         {(isPrepareError || isError) && (
