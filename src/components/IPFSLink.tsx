@@ -1,4 +1,7 @@
-const IPFSLink: FC = () => (
+import { FC } from 'react'
+import { ipfsGatewayLink } from '@/lib/utils'
+
+const IPFSLink: FC<{ uri: string }> = ({ uri }) => (
   <div>
     <a
       href={ipfsGatewayLink(uri)}
