@@ -13,7 +13,6 @@ import { parseEther } from 'ethers/lib/utils'
 import storeCiphertext from '@/lib/storeCiphertext'
 import toast from 'react-hot-toast'
 import { ipfsGatewayLink } from '@/lib/utils'
-import useGlobalStore from '@/stores/globalStore'
 import { Base64 } from 'js-base64'
 import useMedusa from '@/hooks/useMedusa'
 
@@ -84,8 +83,8 @@ const ListingForm: FC = () => {
             viewBox="0 0 20 20"
             xmlns="http://www.w3.org/2000/svg"
           >
-            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path>
-            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path>
+            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
           </svg>
         </a>,
       )
@@ -135,8 +134,8 @@ const ListingForm: FC = () => {
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
               >
-                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"></path>
-                <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"></path>
+                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
               </svg>
             </a>
           )
@@ -168,7 +167,7 @@ const ListingForm: FC = () => {
     <>
       <form className="lg:w-1/2 lg:mx-auto" onSubmit={handleSubmit}>
         <div className="flex items-center justify-center">
-          <label className="w-64 flex flex-col items-center px-4 py-6 rounded-lg shadow-lg tracking-wide border-2 hover:border-dark-secondary cursor-pointer hover:bg-off-white hover:text-dark-secondary transition-colors">
+          <label className="w-64 flex flex-col bg-gray-800 items-center px-4 py-6 rounded-lg shadow-lg tracking-wide border-2 hover:border-dark-secondary cursor-pointer hover:bg-off-white hover:text-dark-secondary transition-colors">
             <svg
               className="w-8 h-8"
               fill="currentColor"
@@ -178,39 +177,41 @@ const ListingForm: FC = () => {
               <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z" />
             </svg>
             <span className="mt-2 text-base leading-normal">
-              {name ?? 'SELL A FILE'}
+              {name ?? 'SELECT A FILE'}
             </span>
             <input type='file' className="hidden" onChange={handleFileChange} />
           </label>
         </div>
 
-        <div className="pt-8 text-center">
-          <label className="block">
-            <span className="text-lg my-4">Name</span>
-            <input
-              required
-              type="text"
-              placeholder="filename.txt"
-              className="form-input my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-dark-primary"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </label>
-        </div>
+        <div className="flex flex-row mt-5 justify-center space-x-10">
+          <div className="text-center">
+            <label className="block">
+              <span className="text-lg my-4">Name</span>
+              <input
+                required
+                type="text"
+                placeholder="filename.txt"
+                className="form-input my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </label>
+          </div>
 
-        <div className="pt-4 text-center">
-          <label className="block">
-            <span className="text-lg my-4">Price</span>
-            <input
-              required
-              type="number"
-              placeholder="ETH"
-              className="form-input my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-dark-primary"
-              value={price}
-              min={0}
-              onChange={(e) => setPrice(e.target.value)}
-            />
-          </label>
+          <div className="text-center">
+            <label className="block">
+              <span className="text-lg my-4">Price</span>
+              <input
+                required
+                type="number"
+                placeholder="ETH"
+                className="form-input my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
+                value={price}
+                min={0}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+            </label>
+          </div>
         </div>
 
         <div className="pt-4 text-center">
@@ -218,7 +219,7 @@ const ListingForm: FC = () => {
           <label className="py-3 block">
             <textarea
               required
-              className="form-textarea mt-1 block w-full h-24 focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-dark-primary"
+              className="form-textarea mt-1 block w-full h-24 focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
               rows={3}
               placeholder="Buy access to my top secret file!"
               value={description}

@@ -1,7 +1,11 @@
 import { FC } from 'react'
 import useMedusa from '@/hooks/useMedusa'
 
-const Signin: FC = ({ text = 'Sign in' }: { text: string }) => {
+interface SigninProps {
+  text: string
+}
+
+const Signin: FC<SigninProps> = ({ text = 'Sign in' }) => {
   const { signed, signMessage } = useMedusa()
 
   if (!signed) {
