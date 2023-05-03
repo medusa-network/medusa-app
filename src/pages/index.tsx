@@ -32,28 +32,29 @@ const Home: FC = () => {
       </Head>
 
       <Toaster position="top-center" reverseOrder={true} />
+      <div className="min-h-screen">
+        <Header />
 
-      <Header />
+        <div className="relative flex items-top justify-center sm:items-center py-4 sm:pt-0">
+          <div className="max-w-6xl mx-auto px-6 lg:px-8">
+            <div className="flex pt-0 justify-center sm:hidden">
+              <h1 className="text-5xl font-light dark:text-white">
+                {APP_NAME}
+              </h1>
+            </div>
 
-      <div className="relative flex items-top justify-center min-h-screen bg-gray-100 dark:bg-gray-800 sm:items-center py-4 sm:pt-0">
-        <div className="max-w-6xl mx-auto px-6 lg:px-8">
-          <div className="flex pt-8 justify-center sm:pt-0 my-7">
-            <h1 className="text-6xl font-mono font-light dark:text-white">
-              {APP_NAME}
-            </h1>
+            <div className="flex justify-center sm:pt-0 my-7">
+              <p className="text-xl font-bold text-orange-500 ml-2">
+                Buy and Sell Private Files!
+              </p>
+            </div>
+
+            <ListingForm />
+
+            <PurchasedSecrets />
+
+            <Listings />
           </div>
-          <div className="flex justify-center sm:pt-0 my-7">
-            <p className="text-lg font-mono font-light dark:text-white ml-2">
-              Encrypt & upload your content and set your price for people to see
-              it!
-            </p>
-          </div>
-
-          <ListingForm />
-
-          <PurchasedSecrets />
-
-          <Listings />
         </div>
       </div>
     </>

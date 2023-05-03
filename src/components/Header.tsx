@@ -4,11 +4,9 @@ import { useAccount, useNetwork } from 'wagmi'
 
 import requestFaucet from '@/lib/requestFaucet'
 import ConnectWallet from './ConnectWallet'
-import Signin from './Signin'
-import ThemeSwitcher from './ThemeSwitcher'
 import toast from 'react-hot-toast'
 import { arbitrumGoerli } from 'wagmi/chains'
-import { hyperspace } from '@/lib/consts'
+import { APP_NAME, hyperspace } from '@/lib/consts'
 
 const Header: FC = () => {
   const { isConnected, address } = useAccount()
@@ -59,27 +57,30 @@ const Header: FC = () => {
   }
 
   return (
-    <div className="relative bg-gray-100 dark:bg-gray-800">
+    <div className="relative">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex items-center justify-between border-b-2 border-black dark:border-gray-100 py-6 md:justify-start md:space-x-10">
+        <div className="flex items-center justify-between border-b-2 border-dark-secondary py-6 md:justify-start md:space-x-10">
           <div className="flex justify-start lg:w-0 lg:flex-1">
             <a href="https://medusanet.xyz">
               <span className="sr-only">Medusa</span>
-              <img className="h-12 w-auto sm:h-16" src="/logo.png" alt="" />
+              <img
+                className="h-12 w-auto sm:h-24 rounded-full"
+                src="/logo.png"
+                alt=""
+              />
             </a>
           </div>
+          <h1 className="text-5xl font-light hidden sm:flex">{APP_NAME}</h1>
 
-          <div className="items-center justify-end flex flex-1 lg:w-0 space-x-3">
+          <div className="items-center justify-end flex flex-1 lg:w-0 space-x-6">
             <button
               disabled={!address}
               onClick={handleFaucet}
-              className="text-base font-medium text-black dark:text-white hover:text-gray-500 dark:hover:text-gray-400 disabled:cursor-not-allowed disabled:opacity-25"
+              className="text-white hover:text-dark-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-25"
             >
               Faucet
             </button>
-            <ThemeSwitcher />
             <ConnectWallet />
-            {isConnected && <Signin />}
           </div>
         </div>
       </div>

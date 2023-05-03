@@ -4,13 +4,26 @@
 
 @layer components {
     .btn-secondary {
-        @apply bg-light-primary text-light-primary border-light-secondary hover:bg-gray-500 dark:bg-off-white dark:text-dark-primary dark:border-dark-primary hover:dark:bg-dark-primary hover:dark:text-off-white hover:dark:border-off-white hover:cursor-pointer py-2 px-4 border-2 rounded transition-colors;
+        @apply bg-light-primary text-light-primary border-light-secondary
+        font-semibold hover:bg-gray-500
+        dark:bg-off-white dark:text-dark-primary dark:border-dark-primary
+        hover:dark:bg-dark-primary hover:dark:text-off-white hover:dark:border-off-white
+        hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-25
+        py-2 px-4 border-2 rounded transition-colors;
     }
     .btn-primary {
         @apply bg-light-primary text-light-primary border-light-secondary
                hover:bg-gray-500
                dark:bg-dark-secondary dark:text-off-white dark:border-off-white
                hover:dark:bg-off-white hover:dark:text-dark-secondary hover:dark:border-off-white
-               hover:cursor-pointer py-2 px-4 border-2 rounded transition-colors;
+               hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-25
+               py-2 px-4 border-2 rounded transition-colors;
+    }
+
+    .btn-blue {
+        @apply font-semibold text-sm text-white
+               bg-indigo-600 dark:bg-indigo-800 hover:bg-black dark:hover:bg-gray-50 dark:hover:text-gray-900
+               hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-25
+               mb-2 py-2 px-3 rounded-sm transition-colors;
     }
 }
