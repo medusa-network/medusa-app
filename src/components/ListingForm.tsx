@@ -191,7 +191,7 @@ const ListingForm: FC = () => {
                 required
                 type="text"
                 placeholder="filename.txt"
-                className="form-input my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
+                className="form-input rounded my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -205,7 +205,7 @@ const ListingForm: FC = () => {
                 required
                 type="number"
                 placeholder="ETH"
-                className="form-input my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
+                className="form-input rounded my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
                 value={price}
                 min={0}
                 onChange={(e) => setPrice(e.target.value)}
@@ -219,7 +219,7 @@ const ListingForm: FC = () => {
           <label className="py-3 block">
             <textarea
               required
-              className="form-textarea mt-1 block w-full h-24 focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
+              className="form-textarea rounded mt-1 block w-full h-24 focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
               rows={3}
               placeholder="Buy access to my top secret file!"
               value={description}
