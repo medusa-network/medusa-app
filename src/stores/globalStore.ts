@@ -2,6 +2,7 @@ import {
   SecretKey,
   PublicKey,
   HGamalEVMCipher as Ciphertext,
+  HGamalEVMReencryptedCipher as ReencryptedCipher,
   Medusa,
 } from '@medusa-network/medusa-sdk'
 import { BigNumber } from 'ethers'
@@ -10,6 +11,7 @@ import create from 'zustand'
 export interface Listing {
   seller: string
   cipherId: BigNumber
+  ciphertext: Ciphertext
   name: string
   description: string
   price: BigNumber
@@ -25,7 +27,7 @@ export interface Sale {
 
 export interface Decryption {
   requestId: BigNumber
-  ciphertext: Ciphertext
+  reencryptedCipher: ReencryptedCipher
 }
 
 interface GlobalState {

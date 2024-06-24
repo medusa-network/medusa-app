@@ -31,6 +31,7 @@ export default function useSwitchChain() {
             await medusa.signer.getAddress(),
             getProvider({ chainId }),
           ),
+          'localhost',
         )
         newMedusa.setKeypair(medusa.keypair)
         updateMedusa(newMedusa)

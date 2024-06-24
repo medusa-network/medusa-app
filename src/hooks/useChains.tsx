@@ -1,9 +1,9 @@
 import { useRouter } from 'next/router'
-import { arbitrumGoerli, mainnet } from 'wagmi/chains'
+import { arbitrumGoerli, foundry, mainnet } from 'wagmi/chains'
 
 import { hyperspace } from '@/lib/consts'
 
-const SUPPORTED_CHAINS = [arbitrumGoerli, hyperspace, mainnet]
+const SUPPORTED_CHAINS = [foundry, arbitrumGoerli, hyperspace, mainnet]
 
 export default function useChains() {
   const router = useRouter()

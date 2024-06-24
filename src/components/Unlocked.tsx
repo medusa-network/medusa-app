@@ -25,7 +25,8 @@ const Unlocked: FC<Sale> = ({ buyer, seller, requestId, cipherId }) => {
     const decryptContent = async () => {
       if (!decryption || !signer || !medusa?.keypair) return
 
-      const { ciphertext } = decryption
+      const { reencryptedCipher } = decryption
+      const { ciphertext } = listing
 
       console.log('Downloading encrypted content from ipfs')
       const ipfsDownload = ipfsGatewayLink(listing.uri)
@@ -35,6 +36,7 @@ const Unlocked: FC<Sale> = ({ buyer, seller, requestId, cipherId }) => {
       try {
         const decryptedBytes = await medusa.decrypt(
           ciphertext,
+          reencryptedCipher,
           encryptedContents,
         )
         const msg = new TextDecoder().decode(decryptedBytes)
