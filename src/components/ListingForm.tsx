@@ -7,12 +7,13 @@ import {
   useAccount,
 } from 'wagmi'
 import { HGamalEVMCipher } from '@medusa-network/medusa-sdk'
+import { BigNumber } from 'ethers'
 
 import { CHAIN_CONFIG, CONTRACT_ABI } from '@/lib/consts'
 import { parseEther } from 'ethers/lib/utils'
 import storeCiphertext from '@/lib/storeCiphertext'
 import toast from 'react-hot-toast'
-import { ipfsGatewayLink } from '@/lib/utils'
+import { getStorageLink } from '@/lib/utils'
 import { Base64 } from 'js-base64'
 import useMedusa from '@/hooks/useMedusa'
 
@@ -21,14 +22,41 @@ const ListingForm: FC = () => {
   const { medusa, signed: medusaSigned, signMessage } = useMedusa()
   const { isConnected } = useAccount()
 
-  const [name, setName] = useState<string | null>()
+  const [name, setName] = useState<string>('')
   const [description, setDescription] = useState('')
   const [price, setPrice] = useState('')
+  const [priceError, setPriceError] = useState<string | null>(null)
 
   const [plaintext, setPlaintext] = useState('')
-  const [ciphertextKey, setCiphertextKey] = useState<HGamalEVMCipher>()
+  const [ciphertextKey, setCiphertextKey] = useState<HGamalEVMCipher | undefined>()
   const [cid, setCid] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  
+  // Get submission fee from environment variables
+  const submissionFee = process.env.NEXT_PUBLIC_SUBMISSION_FEE || "100000000000000" // Default to 0.0001 ETH
+  const submissionFeeEth = parseFloat(submissionFee) / 1e18
+
+  // Validate price input
+  useEffect(() => {
+    if (price === '') {
+      setPriceError(null)
+      return
+    }
+    
+    try {
+      // Check if the price is a valid number
+      const priceValue = parseFloat(price)
+      if (isNaN(priceValue)) {
+        setPriceError('Please enter a valid number')
+      } else if (priceValue < 0) {
+        setPriceError('Price cannot be negative')
+      } else {
+        setPriceError(null)
+      }
+    } catch (e) {
+      setPriceError('Please enter a valid number')
+    }
+  }, [price])
 
   const {
     config,
@@ -36,18 +64,21 @@ const ListingForm: FC = () => {
     isError: isPrepareError,
     isSuccess: readyToSendTransaction,
   } = usePrepareContractWrite({
-    address: CHAIN_CONFIG[chain?.id]?.appContractAddress,
+    address: CHAIN_CONFIG[chain?.id || 0]?.appContractAddress,
     abi: CONTRACT_ABI,
     functionName: 'createListing',
-    args: [
+    args: ciphertextKey && name ? [
       ciphertextKey,
       name,
       description,
-      parseEther(price || '0.00'),
-      `ipfs://${cid}/${name}`,
-    ],
-    enabled: Boolean(cid) && Boolean(chain),
+      parseEther(price || '0'),
+      cid ? cid : '',
+    ] : undefined,
+    enabled: Boolean(cid) && Boolean(chain) && Boolean(ciphertextKey) && Boolean(name),
     chainId: chain?.id,
+    overrides: {
+      gasLimit: BigNumber.from(1000000), // Set a higher gas limit
+    },
   })
 
   const {
@@ -55,15 +86,13 @@ const ListingForm: FC = () => {
     error,
     isError,
     write: createListing,
-  } = useContractWrite(config)
-
-  useEffect(() => {
-    if (readyToSendTransaction) {
-      toast.loading('Submitting secret to Medusa...')
-      createListing?.()
-      setCid('')
-    }
-  }, [readyToSendTransaction])
+  } = useContractWrite({
+    ...config,
+    request: config.request ? {
+      ...config.request,
+      value: BigNumber.from(submissionFee),
+    } : undefined,
+  })
 
   const { isLoading, isSuccess } = useWaitForTransaction({
     hash: data?.hash,
@@ -71,7 +100,7 @@ const ListingForm: FC = () => {
       toast.dismiss()
       toast.success(
         <a
-          href={`https://goerli.arbiscan.io/tx/${txData.transactionHash}`}
+          href={`https://holesky.etherscan.io/tx/${txData.transactionHash}`}
           className="inline-flex items-center text-blue-600 hover:underline"
           target="_blank"
           rel="noreferrer"
@@ -91,16 +120,70 @@ const ListingForm: FC = () => {
     },
     onError: (e) => {
       toast.dismiss()
-      toast.error(`Failed to submit secret to Medusa: ${e.message}`)
+      console.error("Transaction error:", e);
+      
+      // Check if the transaction hash exists despite the error
+      if (data?.hash) {
+        toast.error(
+          <div>
+            <p>Error getting transaction receipt, but transaction was submitted.</p>
+            <a
+              href={`https://holesky.etherscan.io/tx/${data.hash}`}
+              className="inline-flex items-center text-blue-600 hover:underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              View on Etherscan
+              <svg
+                className="ml-2 w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+              </svg>
+            </a>
+          </div>
+        );
+      } else {
+        toast.error(`Failed to submit secret to Medusa: ${e.message}`);
+      }
     },
   })
 
+  useEffect(() => {
+    if (readyToSendTransaction) {
+      toast.loading('Submitting secret to Medusa...')
+      createListing?.()
+      setCid('')
+    }
+  }, [readyToSendTransaction])
+
   const handleSubmit = async (event: any) => {
     event.preventDefault()
+    
+    // Validate price before submitting
+    if (priceError) {
+      toast.error('Please fix the price error before submitting')
+      return
+    }
+    
+    if (!chain || !chain.id) {
+      toast.error('Please connect to a supported network')
+      return
+    }
+    
     setSubmitting(true)
     let signedMedusa = medusa
     if (!medusaSigned) {
       signedMedusa = await signMessage()
+    }
+
+    if (!signedMedusa) {
+      toast.error('Failed to sign message')
+      setSubmitting(false)
+      return
     }
 
     console.log('Submitting new listing')
@@ -116,34 +199,43 @@ const ListingForm: FC = () => {
       console.log('Encrypted KEY: ', encryptedKey)
       setCiphertextKey(encryptedKey)
 
-      toast.promise(storeCiphertext(name, b64EncryptedData), {
-        loading: 'Uploading encrypted secret to IPFS...',
-        success: (cid) => {
-          setCid(cid)
-          return (
-            <a
-              href={ipfsGatewayLink(cid)}
-              className="inline-flex items-center text-blue-600 hover:underline"
-              target="_blank"
-              rel="noreferrer"
-            >
-              View secret on IPFS
-              <svg
-                className="ml-2 w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-                xmlns="http://www.w3.org/2000/svg"
+      if (name) {
+        // Generate a unique S3 key using timestamp and filename
+        const timestamp = Date.now();
+        const s3Key = `${timestamp}_${name}`;
+        
+        toast.promise(storeCiphertext(s3Key, b64EncryptedData), {
+          loading: 'Uploading encrypted secret to S3...',
+          success: (cid) => {
+            setCid(cid)
+            return (
+              <a
+                href={getStorageLink(cid)}
+                className="inline-flex items-center text-blue-600 hover:underline"
+                target="_blank"
+                rel="noreferrer"
               >
-                <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-                <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-              </svg>
-            </a>
-          )
-        },
-        error: (error) => `Error uploading to IPFS: ${error.message}`,
-      })
+                View secret on S3
+                <svg
+                  className="ml-2 w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+                  <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+                </svg>
+              </a>
+            )
+          },
+          error: (error) => `Error uploading to S3: ${error.message}`,
+        })
+      } else {
+        toast.error('File name is required')
+      }
     } catch (e) {
       console.log('Encryption or storeCiphertext API call Failed: ', e)
+      toast.error(`Encryption failed: ${e instanceof Error ? e.message : 'Unknown error'}`)
     }
     setSubmitting(false)
   }
@@ -177,7 +269,7 @@ const ListingForm: FC = () => {
               <path d="M16.88 9.1A4 4 0 0 1 16 17H5a5 5 0 0 1-1-9.9V7a3 3 0 0 1 4.52-2.59A4.98 4.98 0 0 1 17 8c0 .38-.04.74-.12 1.1zM11 11h3l-4-4-4 4h3v3h2v-3z" />
             </svg>
             <span className="mt-2 text-base leading-normal">
-              {name ?? 'SELECT A FILE'}
+              {name || 'SELECT A FILE'}
             </span>
             <input type='file' className="hidden" onChange={handleFileChange} />
           </label>
@@ -203,13 +295,19 @@ const ListingForm: FC = () => {
               <span className="text-lg my-4">Price</span>
               <input
                 required
-                type="number"
+                type="text"
+                pattern="[0-9]*\.?[0-9]*"
                 placeholder="ETH"
                 className="form-input rounded my-5 block w-full focus:ring-orange-700 border-off-white focus:border-dark-secondary text-off-white bg-gray-800"
                 value={price}
-                min={0}
                 onChange={(e) => setPrice(e.target.value)}
               />
+              {priceError && (
+                <span className="text-red-500 text-sm">{priceError}</span>
+              )}
+              <span className="text-gray-400 text-xs block mt-1">
+                Enter price in ETH (e.g., 0.001)
+              </span>
             </label>
           </div>
         </div>
@@ -230,7 +328,7 @@ const ListingForm: FC = () => {
         <div className="text-center w-full">
           <button
             type="submit"
-            disabled={isLoading || submitting || !isConnected}
+            disabled={isLoading || submitting || !isConnected || !!priceError}
             className="btn-primary font-semibold mt-5 text-xl py-4 px-4 disabled:cursor-not-allowed disabled:opacity-25"
           >
             {isLoading || submitting
@@ -239,9 +337,12 @@ const ListingForm: FC = () => {
               ? 'Sell your Secret'
               : 'Connect your Wallet'}
           </button>
+          <p className="text-gray-400 text-xs mt-2">
+            Note: A small fee ({submissionFeeEth} ETH) will be charged for submitting to the Medusa network
+          </p>
         </div>
         {(isPrepareError || isError) && (
-          <div>Error: {(prepareError || error)?.message}</div>
+          <div className="text-red-500 mt-2">Error: {(prepareError || error)?.message}</div>
         )}
       </form>
     </>

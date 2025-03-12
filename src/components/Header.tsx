@@ -1,89 +1,91 @@
 import { FC } from 'react'
-import { useAccount, useNetwork } from 'wagmi'
-
-import requestFaucet from '@/lib/requestFaucet'
+import Link from 'next/link'
+import { useNetwork } from 'wagmi'
 import ConnectWallet from './ConnectWallet'
 import toast from 'react-hot-toast'
-import { arbitrumGoerli } from 'wagmi/chains'
-import { APP_NAME, hyperspace } from '@/lib/consts'
+import { arbitrumSepolia } from '@/lib/consts'
+import { APP_NAME } from '@/lib/consts'
+
+// Create a type for the ethereum provider
+type EthereumProvider = {
+  request: (args: { method: string; params?: any[] }) => Promise<any>;
+};
 
 const Header: FC = () => {
-  const { address } = useAccount()
   const { chain } = useNetwork()
 
   const handleFaucet = async (event: any) => {
     event.preventDefault()
+    if (!chain) return
 
     switch (chain.id) {
-      case arbitrumGoerli.id: {
+      case arbitrumSepolia.id: {
         handleArbitrumFaucet()
         break
       }
-      case hyperspace.id: {
-        window.open('https://hyperspace.yoga/#faucet', '_blank').focus()
-        break
-      }
       default: {
-        break
+        toast.error('No faucet available for this network')
       }
     }
   }
 
   const handleArbitrumFaucet = async () => {
-    toast.promise(requestFaucet(address), {
-      loading: 'Requesting faucet...',
-      success: (txHash) => (
-        <a
-          href={`https://goerli.arbiscan.io/tx/${txHash}`}
-          className="inline-flex items-center text-blue-600 hover:underline"
-          target="_blank"
-          rel="noreferrer"
-        >
-          Sending 0.01 ETH to your wallet - View on Etherscan
-          <svg
-            className="ml-2 w-5 h-5"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
-            <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
-          </svg>
-        </a>
-      ),
-      error: (error) => `Error requesting faucet: ${error.message}`,
-    })
+    try {
+      // Use type assertion for ethereum
+      const ethereum = window.ethereum as EthereumProvider | undefined
+      const accounts = await ethereum?.request({
+        method: 'eth_requestAccounts',
+      })
+      const address = accounts?.[0]
+      if (!address) {
+        toast.error('Please connect your wallet first')
+        return
+      }
+
+      const response = await fetch(`/api/faucet?address=${address}`)
+      const data = await response.json()
+
+      if (data.error) {
+        toast.error(data.error)
+      } else {
+        toast.success(
+          <div>
+            Tokens sent! View on{' '}
+            <a
+              href={`https://sepolia.arbiscan.io/tx/${data.txHash}`}
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              Arbiscan
+            </a>
+          </div>,
+        )
+      }
+    } catch (error) {
+      console.error(error)
+      toast.error('Failed to send tokens')
+    }
   }
 
   return (
-    <div className="relative">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex items-center justify-between border-b-2 border-dark-secondary py-6 md:justify-start md:space-x-10">
-          <div className="flex justify-start lg:w-0 lg:flex-1">
-            <a href="https://medusanet.xyz">
-              <span className="sr-only">Medusa</span>
-              <img
-                className="h-12 w-auto sm:h-24 rounded-full"
-                src="/logo.png"
-                alt=""
-              />
-            </a>
-          </div>
-          <h1 className="text-5xl font-light hidden sm:flex">{APP_NAME}</h1>
-
-          <div className="items-center justify-end flex flex-1 lg:w-0 space-x-6">
-            <button
-              disabled={!address}
-              onClick={handleFaucet}
-              className="text-white hover:text-dark-secondary transition-colors disabled:cursor-not-allowed disabled:opacity-25"
-            >
-              Faucet
-            </button>
-            <ConnectWallet />
-          </div>
-        </div>
+    <header className="flex h-16 items-center justify-between border-b border-gray-200 px-4 dark:border-gray-800">
+      <div className="flex items-center gap-4">
+        <Link href="/" className="text-xl font-bold">
+          {APP_NAME}
+        </Link>
       </div>
-    </div>
+      <div className="flex items-center gap-4">
+        <button
+          onClick={handleFaucet}
+          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+        >
+          Get Test Tokens
+        </button>
+        <ConnectWallet />
+      </div>
+    </header>
   )
 }
+
 export default Header

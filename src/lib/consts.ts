@@ -1,26 +1,70 @@
-import { Address, Chain } from 'wagmi'
-import { arbitrumGoerli } from 'wagmi/chains'
+import { Address } from 'wagmi'
+import { mainnet } from 'wagmi/chains'
 
 export const APP_NAME = 'OnlyFiles' as const
 
-export const hyperspace: Chain = {
-  id: 3141,
-  name: 'Filecoin Hyperspace Testnet',
-  network: 'hyperspace',
+// Define Arbitrum Sepolia manually since it might not be properly defined in the current wagmi version
+export const arbitrumSepolia = {
+  id: 421614,
+  name: 'Arbitrum Sepolia',
+  network: 'arbitrum-sepolia',
   nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
     decimals: 18,
-    name: 'Filecoin',
-    symbol: 'tFIL',
   },
   rpcUrls: {
-    default: { http: ['https://api.hyperspace.node.glif.io/rpc/v1'] },
-    private: { http: ['https://hyperspace.node.glif.io/archive/lotus/rpc/v1'] },
+    default: {
+      http: ['https://sepolia-rollup.arbitrum.io/rpc'],
+    },
+    public: {
+      http: ['https://sepolia-rollup.arbitrum.io/rpc'],
+    },
   },
   blockExplorers: {
-    etherscan: { name: 'Filfox', url: 'https://hyperspace.filfox.info/en' },
-    default: { name: 'Filfox', url: 'https://hyperspace.filfox.info/en' },
-    // etherscan: { name: 'Filscan', url: 'https://hyperspace.filscan.io/' },
-    // default: { name: 'Filscan', url: 'https://hyperspace.filscan.io/' },
+    default: {
+      name: 'Arbiscan',
+      url: 'https://sepolia.arbiscan.io',
+    },
+  },
+  testnet: true,
+}
+
+// Define Holesky testnet
+export const holesky = {
+  id: 17000,
+  name: 'Holesky',
+  network: 'holesky',
+  nativeCurrency: {
+    name: 'Ether',
+    symbol: 'ETH',
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: [
+        'https://ethereum-holesky.publicnode.com',
+        'https://holesky.rpc.thirdweb.com',
+        'https://holesky.blockpi.network/v1/rpc/public',
+        'https://1rpc.io/holesky',
+        'https://rpc.ankr.com/eth_holesky'
+      ],
+    },
+    public: {
+      http: [
+        'https://ethereum-holesky.publicnode.com',
+        'https://holesky.rpc.thirdweb.com',
+        'https://holesky.blockpi.network/v1/rpc/public',
+        'https://1rpc.io/holesky',
+        'https://rpc.ankr.com/eth_holesky'
+      ],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: 'Etherscan',
+      url: 'https://holesky.etherscan.io',
+    },
   },
   testnet: true,
 }
@@ -32,13 +76,13 @@ type Config = {
 }
 
 export const CHAIN_CONFIG: Record<ChainId, Config> = {
-  [arbitrumGoerli.id]: {
+  [arbitrumSepolia.id]: {
     appContractAddress: '0xDbf5B82C9b3Cd8291878b4d355368ab6e32b9A14',
     oracleContractAddress: '0xf1d5A4481F44fe0818b6E7Ef4A60c0c9b29E3118',
   },
-  [hyperspace.id]: {
-    appContractAddress: '0xAD07af2959994e35b716bbde8f2b8f0323103b57',
-    oracleContractAddress: '0xb0dd3eb2374b21b6efacf41a16e25ed8114734e0',
+  [holesky.id]: {
+    appContractAddress: process.env.NEXT_PUBLIC_ONLYFILES_ADDRESS as Address || '0x5567aca23bE9a5899010a4D3fA83b9da2B947256',
+    oracleContractAddress: process.env.NEXT_PUBLIC_ORACLE_ADDRESS as Address || '0xb0C60D71432829021525995249538353b148ED30',
   },
 } as const
 
@@ -161,6 +205,70 @@ export const CONTRACT_ABI = <const>[
         internalType: 'uint256',
         name: 'cipherId',
         type: 'uint256',
+      },
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct G1Point',
+            name: 'random',
+            type: 'tuple',
+          },
+          {
+            internalType: 'uint256',
+            name: 'cipher',
+            type: 'uint256',
+          },
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct G1Point',
+            name: 'random2',
+            type: 'tuple',
+          },
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'f',
+                type: 'uint256',
+              },
+              {
+                internalType: 'uint256',
+                name: 'e',
+                type: 'uint256',
+              },
+            ],
+            internalType: 'struct DleqProof',
+            name: 'dleq',
+            type: 'tuple',
+          },
+        ],
+        indexed: false,
+        internalType: 'struct Ciphertext',
+        name: 'ciphertext',
+        type: 'tuple',
       },
       {
         indexed: false,
@@ -530,3 +638,141 @@ export const CONTRACT_ABI = <const>[
     type: 'function',
   },
 ]
+
+export const ORACLE_ABI = [
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'id',
+        type: 'uint256'
+      },
+      {
+        components: [
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256'
+              },
+              {
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256'
+              }
+            ],
+            internalType: 'struct G1Point',
+            name: 'random',
+            type: 'tuple'
+          },
+          {
+            internalType: 'uint256',
+            name: 'cipher',
+            type: 'uint256'
+          },
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'x',
+                type: 'uint256'
+              },
+              {
+                internalType: 'uint256',
+                name: 'y',
+                type: 'uint256'
+              }
+            ],
+            internalType: 'struct G1Point',
+            name: 'random2',
+            type: 'tuple'
+          },
+          {
+            components: [
+              {
+                internalType: 'uint256',
+                name: 'f',
+                type: 'uint256'
+              },
+              {
+                internalType: 'uint256',
+                name: 'e',
+                type: 'uint256'
+              }
+            ],
+            internalType: 'struct DleqProof',
+            name: 'dleq',
+            type: 'tuple'
+          }
+        ],
+        internalType: 'struct Ciphertext',
+        name: 'ciphertext',
+        type: 'tuple'
+      },
+      {
+        indexed: false,
+        internalType: 'address',
+        name: 'client',
+        type: 'address'
+      }
+    ],
+    name: 'NewCiphertext',
+    type: 'event'
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: 'uint256',
+        name: 'cipherId',
+        type: 'uint256'
+      },
+      {
+        indexed: false,
+        internalType: 'uint256',
+        name: 'requestId',
+        type: 'uint256'
+      },
+      {
+        components: [
+          {
+            internalType: 'uint256',
+            name: 'x',
+            type: 'uint256'
+          },
+          {
+            internalType: 'uint256',
+            name: 'y',
+            type: 'uint256'
+          }
+        ],
+        internalType: 'struct G1Point',
+        name: 'publicKey',
+        type: 'tuple'
+      },
+      {
+        components: [
+          {
+            internalType: 'address',
+            name: 'client',
+            type: 'address'
+          },
+          {
+            internalType: 'uint96',
+            name: 'fee',
+            type: 'uint96'
+          }
+        ],
+        internalType: 'struct PendingRequest',
+        name: 'request',
+        type: 'tuple'
+      }
+    ],
+    name: 'ReencryptionRequest',
+    type: 'event'
+  }
+] as const;

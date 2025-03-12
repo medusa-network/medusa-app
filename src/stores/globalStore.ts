@@ -33,11 +33,13 @@ interface GlobalState {
   listings: Listing[]
   sales: Sale[]
   decryptions: Decryption[]
+  sessionDecryptions: Decryption[]
 
   updateMedusa: (medusa: Medusa<SecretKey, PublicKey<SecretKey>> | null) => void
   updateListings: (listings: Listing[]) => void
   updateSales: (sales: Sale[]) => void
   updateDecryptions: (decryptions: Decryption[]) => void
+  clearSessionDecryptions: () => void
 
   addListing: (listing: Listing) => void
   addSale: (sale: Sale) => void
@@ -49,12 +51,14 @@ const useGlobalStore = create<GlobalState>()((set) => ({
   listings: [],
   sales: [],
   decryptions: [],
+  sessionDecryptions: [],
 
   updateMedusa: (medusa: Medusa<SecretKey, PublicKey<SecretKey>> | null) =>
     set((state) => ({ medusa })),
   updateListings: (listings: Listing[]) => set((state) => ({ listings })),
-  updateSales: (sales: []) => set((state) => ({ sales })),
-  updateDecryptions: (decryptions: []) => set((state) => ({ decryptions })),
+  updateSales: (sales: Sale[]) => set((state) => ({ sales })),
+  updateDecryptions: (decryptions: Decryption[]) => set((state) => ({ decryptions })),
+  clearSessionDecryptions: () => set((state) => ({ sessionDecryptions: [] })),
 
   addListing: (listing: Listing) =>
     set(({ listings }) => {
@@ -75,12 +79,18 @@ const useGlobalStore = create<GlobalState>()((set) => ({
     }),
 
   addDecryption: (decryption: Decryption) =>
-    set(({ decryptions }) => {
-      // Needed because of duplicate events bug in FVM
-      if (!decryptions.find((d) => d.requestId === decryption.requestId)) {
-        return { decryptions: [decryption, ...decryptions] }
-      }
-      return { decryptions }
+    set(({ decryptions, sessionDecryptions }) => {
+      // Check if this decryption already exists in the main decryptions array
+      const existsInMain = decryptions.find((d) => d.requestId.eq(decryption.requestId));
+      
+      // Check if this decryption already exists in the session decryptions array
+      const existsInSession = sessionDecryptions.find((d) => d.requestId.eq(decryption.requestId));
+      
+      // Update both arrays if needed
+      return { 
+        decryptions: existsInMain ? decryptions : [decryption, ...decryptions],
+        sessionDecryptions: existsInSession ? sessionDecryptions : [decryption, ...sessionDecryptions]
+      };
     }),
 }))
 

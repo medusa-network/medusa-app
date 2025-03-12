@@ -1,0 +1,34 @@
+import { FC } from 'react'
+import { getStorageLink } from '@/lib/utils'
+
+const StorageLink: FC<{ uri: string }> = ({ uri }) => {
+  const storageUrl = getStorageLink(uri);
+  
+  if (!storageUrl) {
+    return <div className="text-gray-400">Invalid storage link</div>;
+  }
+  
+  return (
+    <div>
+      <a
+        href={storageUrl}
+        target="_blank"
+        className="inline-flex items-center text-blue-600 hover:underline"
+        rel="noreferrer"
+      >
+        View File
+        <svg
+          className="ml-2 w-5 h-5"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z" />
+          <path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z" />
+        </svg>
+      </a>
+    </div>
+  );
+}
+
+export default StorageLink 
