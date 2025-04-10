@@ -49,10 +49,11 @@ const EventsFetcher: FC = () => {
   const decryptions = useGlobalStore((state) => state.decryptions)
 
   const chainConfig = chain?.id ? CHAIN_CONFIG[chain.id] : undefined
-
+  
   // We're not using useContractEvent for NewListing because there's a mismatch between
   // the contract's event definition and the ABI in the frontend
   // Instead, we'll fetch past events manually
+  // TODO: Resolve ABI mismatch and use useContractEvent for real-time updates
 
   useContractEvent({
     address: chainConfig?.appContractAddress,
@@ -100,7 +101,7 @@ const EventsFetcher: FC = () => {
     fromBlock: number,
     toBlock: number,
     topics: (string | string[] | null)[] | undefined,
-    chunkSize: number = 40000 // Use a slightly smaller chunk size than the limit (50,000) to be safe
+    chunkSize: number = 10000 // Use a slightly smaller chunk size than the limit (50,000) to be safe
   ) => {
     console.log(`Fetching logs from block ${fromBlock} to ${toBlock} in chunks of ${chunkSize}`);
     
@@ -147,18 +148,25 @@ const EventsFetcher: FC = () => {
   };
 
   // Function to fetch past events
-  const fetchPastEvents = async () => {
-    if (!onlyFiles || !provider || !chainConfig) return;
+  const fetchPastEvents = async (
+      currentChainId: number, 
+      currentContractAddress: string
+    ) => {
+    // Add check for address as well, no need to fetch if wallet not connected
+    // Also check the passed-in values
+    if (!onlyFiles || !provider || !address || !currentChainId || !currentContractAddress) {
+      console.log("Skipping fetchPastEvents: missing provider, address, chainId or contractAddress");
+      setIsLoading(false); // Ensure loading state is turned off
+      return; 
+    }
     
     setIsLoading(true);
     console.log("Starting to fetch past events...");
     
     try {
-      console.log("Fetching past events...");
-      
       // Create a contract instance with ethers
       const contract = new ethers.Contract(
-        chainConfig.appContractAddress,
+        currentContractAddress, // Use passed-in address
         CONTRACT_ABI,
         provider
       );
@@ -166,15 +174,51 @@ const EventsFetcher: FC = () => {
       // Get current block number
       const currentBlock = await provider.getBlockNumber();
       console.log("Current block:", currentBlock);
+
+      // --- Caching Logic --- 
+      // Derive storage key *inside* the function using current values
+      const lastBlockStorageKey = `lastFetchedBlock_${currentChainId}_${currentContractAddress}`;
+      console.log("Using storage key inside fetchPastEvents:", lastBlockStorageKey);
       
       // Calculate blocks for approximately 2 days (assuming ~12 sec block time on Holesky)
       // 2 days = 48 hours = 2880 minutes = 172800 seconds
       // 172800 seconds / 12 seconds per block ≈ 14400 blocks
-      const blocksFor2Days = 14400;
-      
-      // Fetch past NewListing events (last 2 days of blocks)
-      const fromBlock = Math.max(0, currentBlock - blocksFor2Days);
-      console.log(`Fetching events from block ${fromBlock} to ${currentBlock} (approximately 2 days)`);
+      const blocksFor60Days = 14400*30;
+
+      // Get the last fetched block from local storage, default to 30 days ago if not found or invalid
+      let lastFetchedBlock = Math.max(0, currentBlock - blocksFor60Days);
+
+      try {
+        const storedBlock = localStorage.getItem(lastBlockStorageKey);
+        console.log(`Value read from localStorage for key '${lastBlockStorageKey}':`, storedBlock); // Log the raw value read
+        if (storedBlock) {
+          const parsedBlock = parseInt(storedBlock, 10);
+          if (!isNaN(parsedBlock) && parsedBlock >= 0) {
+            lastFetchedBlock = parsedBlock;
+          } else {
+            console.warn("Invalid block number found in cache, defaulting to 0.", { storedBlock });
+          }
+        }
+      } catch (e) {
+        console.error("Error reading last fetched block from local storage:", e);
+        // Proceed with default lastFetchedBlock = 0
+      }
+      console.log("Last fetched block from cache:", lastFetchedBlock);
+
+      // Determine the starting block for the new fetch
+      // Start from the block *after* the last fetched one
+      const fromBlock = lastFetchedBlock + 1; 
+
+      // If fromBlock is already >= currentBlock, no new blocks to fetch
+      if (fromBlock >= currentBlock) {
+        console.log(`No new blocks to fetch. Current: ${currentBlock}, Last Fetched: ${lastFetchedBlock}`);
+        setIsLoading(false);
+        setHasAttemptedFetch(true); // Mark fetch as attempted
+        return;
+      }
+      // --- End Caching Logic ---
+
+      console.log(`Fetching events from block ${fromBlock} to ${currentBlock}`);
       
       // Use the correct event signature for NewListing
       const newListingTopic = ethers.utils.id("NewListing(address,uint256,tuple,string,string,uint256,string)");
@@ -183,30 +227,29 @@ const EventsFetcher: FC = () => {
       // Get logs in chunks to avoid exceeding the block range limit
       const logs = await fetchLogsInChunks(
         contract,
-        fromBlock,
+        fromBlock, // Start from the block after the last fetch
         currentBlock,
         [newListingTopic]
       );
       
-      console.log("Found", logs.length, "listing logs in total");
+      console.log("Found", logs.length, "new listing logs since block", fromBlock);
       
-      let foundListings = false;
+      // Collect NEW listings found in this range
+      const newListingsFromFetch: Listing[] = []; 
       
-      // If no logs found, try a more direct approach
+      // If no logs found with topic, try direct approach for the *new* block range
       if (logs.length === 0) {
         console.log("No logs found with topic. Trying a more direct approach...");
         
-        // Try to get all logs for the contract in chunks
         const allLogs = await fetchLogsInChunks(
           contract,
-          fromBlock,
+          fromBlock, // Search only new block range
           currentBlock,
           undefined
         );
         
-        console.log("Found", allLogs.length, "total logs for the contract");
+        console.log("Found", allLogs.length, "total new logs for the contract since block", fromBlock);
         
-        // Try to parse each log
         for (const log of allLogs) {
           try {
             const parsedLog = contract.interface.parseLog(log);
@@ -214,25 +257,31 @@ const EventsFetcher: FC = () => {
             
             // If this is a NewListing event, process it
             if (parsedLog.name === "NewListing") {
+              // Log the raw args for debugging
+              console.log("Raw args from parsed log (direct approach):", parsedLog.args);
+
+              // Check URI validity
+              const uri = parsedLog.args.uri;
+              const isValidUri = isValidStorageUri(uri);
+              console.log(`Listing from log (direct): URI='${uri}', isValid=${isValidUri}`);
+
               // Only process listings with valid URIs for our storage system
-              // Skip if URI is not a valid storage URI
-              if (!parsedLog.args.uri || !isValidStorageUri(parsedLog.args.uri)) {
-                console.log("Skipping listing with invalid URI:", parsedLog.args.uri);
-                continue;
+              if (isValidUri) {
+                const listing: Listing = {
+                  seller: parsedLog.args.seller,
+                  cipherId: parsedLog.args.cipherId,
+                  name: parsedLog.args.name,
+                  description: parsedLog.args.description,
+                  price: parsedLog.args.price,
+                  uri: uri
+                };
+                
+                // Note: We only add listings found in the *new* block range
+                console.log("Collecting NEW listing from parsed log (direct):", listing);
+                newListingsFromFetch.push(listing); 
+              } else {
+                console.log("Skipping listing from log (direct) due to invalid URI:", uri);
               }
-              
-              const listing: Listing = {
-                seller: parsedLog.args.seller,
-                cipherId: parsedLog.args.cipherId,
-                name: parsedLog.args.name,
-                description: parsedLog.args.description,
-                price: parsedLog.args.price,
-                uri: parsedLog.args.uri
-              };
-              
-              console.log("Adding listing from parsed log:", listing);
-              addListing(listing);
-              foundListings = true;
             }
           } catch (err) {
             console.error("Error parsing log:", err);
@@ -246,24 +295,31 @@ const EventsFetcher: FC = () => {
             console.log("Parsed log:", parsedLog);
             
             if (parsedLog && parsedLog.args) {
+              // Log the raw args for debugging
+              console.log("Raw args from parsed log (topic approach):", parsedLog.args);
+
+              // Check URI validity
+              const uri = parsedLog.args.uri;
+              const isValidUri = isValidStorageUri(uri);
+              console.log(`Listing from log (topic): URI='${uri}', isValid=${isValidUri}`);
+
               // Only process listings with valid URIs for our storage system
-              if (!parsedLog.args.uri || !isValidStorageUri(parsedLog.args.uri)) {
-                console.log("Skipping listing with invalid URI:", parsedLog.args.uri);
-                continue;
+              if (isValidUri) {
+                const listing: Listing = {
+                  seller: parsedLog.args.seller,
+                  cipherId: parsedLog.args.cipherId,
+                  name: parsedLog.args.name,
+                  description: parsedLog.args.description,
+                  price: parsedLog.args.price,
+                  uri: uri
+                };
+                
+                // Note: We only add listings found in the *new* block range
+                console.log("Collecting NEW listing:", listing);
+                newListingsFromFetch.push(listing); 
+              } else {
+                console.log("Skipping listing from log (topic) due to invalid URI:", uri);
               }
-              
-              const listing: Listing = {
-                seller: parsedLog.args.seller,
-                cipherId: parsedLog.args.cipherId,
-                name: parsedLog.args.name,
-                description: parsedLog.args.description,
-                price: parsedLog.args.price,
-                uri: parsedLog.args.uri
-              };
-              
-              console.log("Adding listing:", listing);
-              addListing(listing);
-              foundListings = true;
             }
           } catch (err) {
             console.error("Error parsing log:", err);
@@ -271,50 +327,23 @@ const EventsFetcher: FC = () => {
         }
       }
       
-      // As a fallback, let's try to directly query the contract for listings
-      if (!foundListings) {
-        console.log("No listings found from logs, trying direct contract queries...");
-        
-        try {
-          // Try to get multiple listings by ID
-          for (let i = 1; i <= 10; i++) {
-            try {
-              const listing = await contract.listings(i).catch(() => null);
-              if (listing && listing.seller && !listing.seller.startsWith('0x0000000')) {
-                console.log(`Found listing with ID ${i}:`, listing);
-                
-                // Only add if it has a valid storage URI
-                if (isValidStorageUri(listing.uri)) {
-                  // Add this listing to the store with placeholder values for name and description
-                  const listingObj: Listing = {
-                    seller: listing.seller,
-                    cipherId: BigNumber.from(i),
-                    name: `Listing #${i}`,
-                    description: "This listing was found directly in the contract",
-                    price: listing.price,
-                    uri: listing.uri
-                  };
-                  
-                  console.log("Adding listing from contract:", listingObj);
-                  addListing(listingObj);
-                  foundListings = true;
-                } else {
-                  console.log(`Skipping listing ${i} with invalid URI:`, listing.uri);
-                }
-              }
-            } catch (err) {
-              console.log(`No listing found with ID ${i}`);
-            }
-          }
-        } catch (err) {
-          console.error("Error querying contract directly:", err);
-        }
+      // Add newly found listings to the store (addListing handles deduplication)
+      if (newListingsFromFetch.length > 0) {
+        console.log(`Adding ${newListingsFromFetch.length} newly found listings to the store.`);
+        newListingsFromFetch.forEach(addListing); // Add each new listing
       }
       
-      if (!foundListings) {
-        console.log("WARNING: No listings found through any method!");
+      // --- Caching Logic --- 
+      // Update the last fetched block in local storage *after* successful processing
+      try {
+        console.log(`Attempting to write last fetched block to local storage. Key: '${lastBlockStorageKey}', Value: ${currentBlock}`);
+        localStorage.setItem(lastBlockStorageKey, currentBlock.toString());
+        console.log("Successfully updated last fetched block in cache to:", currentBlock);
+      } catch (e) {
+        console.error("Error writing last fetched block to local storage:", { key: lastBlockStorageKey, value: currentBlock, error: e });
       }
-      
+      // --- End Caching Logic ---
+
       setHasAttemptedFetch(true);
     } catch (error: any) {
       console.error("Error fetching past events:", error);
@@ -335,7 +364,14 @@ const EventsFetcher: FC = () => {
   useEffect(() => {
     // Reset error state
     setError(null);
+
+    // Log the raw chain object from wagmi
+    console.log("Wagmi detected chain:", chain);
     
+    // Construct the expected storage key based on current chain/config
+    // This key is only used for DEBUG logging now
+    const currentStorageKeyForDebug = `lastFetchedBlock_${chain?.id || 'unknown'}_${chainConfig?.appContractAddress || 'unknown'}`;
+
     // Collect debug information
     const debug = {
       chainId: chain?.id,
@@ -347,9 +383,12 @@ const EventsFetcher: FC = () => {
       supportedChainIds: Object.keys(CHAIN_CONFIG).map(id => parseInt(id)),
       expectedChainId: parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "17000"),
       needsNetworkSwitch: chain?.id !== parseInt(process.env.NEXT_PUBLIC_CHAIN_ID || "17000"),
-      currentListings: listings.length,
+      // listings.length might reflect cached value initially
+      currentListingsInStore: listings.length, 
       hasAttemptedFetch: hasAttemptedFetch,
-      isLoading: isLoading
+      isLoading: isLoading,
+      lastBlockStorageKey: currentStorageKeyForDebug, // Log the key derived here
+      lastBlockValue: localStorage.getItem(currentStorageKeyForDebug) // Read using the key derived here
     };
     
     setDebugInfo(JSON.stringify(debug, null, 2));
@@ -378,24 +417,20 @@ const EventsFetcher: FC = () => {
       return
     }
     
-    // Fetch past events when the component mounts and when the chain or provider changes
-    fetchPastEvents().catch(error => {
+    // Ensure we pass the validated chainId and contractAddress
+    const validatedChainId = chain.id;
+    const validatedContractAddress = chainConfig.appContractAddress;
+    
+    // Log the values being passed to fetchPastEvents
+    console.log(`Calling fetchPastEvents with chainId: ${validatedChainId}, contractAddress: ${validatedContractAddress}`);
+    
+    fetchPastEvents(validatedChainId, validatedContractAddress).catch(error => {
       console.error("Error in fetchPastEvents:", error);
       setError(`Failed to fetch past events: ${error.message}`);
       setIsLoading(false);
     });
     
-  }, [chain, provider, chainConfig]);
-
-  // Force a re-fetch if listings are empty after initial load
-  useEffect(() => {
-    if (!isLoading && hasAttemptedFetch && listings.length === 0 && chainConfig && provider) {
-      console.log("No listings found after initial load, trying again...");
-      fetchPastEvents().catch(error => {
-        console.error("Error in retry fetchPastEvents:", error);
-      });
-    }
-  }, [isLoading, hasAttemptedFetch, listings.length, chainConfig, provider]);
+  }, [chain, provider, chainConfig, address]); // Add address dependency
 
   // Display error if present
   if (error) {

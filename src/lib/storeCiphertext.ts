@@ -24,6 +24,6 @@ export default async function storeCiphertext(
     throw new Error(errorData.error || 'Failed to store ciphertext');
   }
 
-  const { key } = await response.json()
-  return key // Return the S3 key directly
+  const { cid } = await response.json()
+  return cid // Return the S3 key directly
 }

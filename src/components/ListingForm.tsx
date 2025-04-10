@@ -67,13 +67,27 @@ const ListingForm: FC = () => {
     address: CHAIN_CONFIG[chain?.id || 0]?.appContractAddress,
     abi: CONTRACT_ABI,
     functionName: 'createListing',
-    args: ciphertextKey && name ? [
+    args: ciphertextKey && name && cid ? [
       ciphertextKey,
       name,
       description,
       parseEther(price || '0'),
-      cid ? cid : '',
+      cid,
     ] : undefined,
+    onSettled(data, error) {
+      console.log('Prepare settled', { 
+        args: ciphertextKey && name && cid ? [
+          ciphertextKey,
+          name,
+          description,
+          parseEther(price || '0'),
+          cid,
+        ] : 'undefined', 
+        enabled: Boolean(cid) && Boolean(chain) && Boolean(ciphertextKey) && Boolean(name), 
+        data, 
+        error 
+      });
+    },
     enabled: Boolean(cid) && Boolean(chain) && Boolean(ciphertextKey) && Boolean(name),
     chainId: chain?.id,
     overrides: {
@@ -86,17 +100,23 @@ const ListingForm: FC = () => {
     error,
     isError,
     write: createListing,
+    isLoading: isWriteLoading,
+    isSuccess: isWriteSuccess,
   } = useContractWrite({
     ...config,
+    onSettled(data, error) {
+      console.log('Write settled', { config, request: config.request, data, error });
+    },
     request: config.request ? {
       ...config.request,
       value: BigNumber.from(submissionFee),
     } : undefined,
   })
 
-  const { isLoading, isSuccess } = useWaitForTransaction({
+  const { isLoading, isSuccess, isError: isWaitError, error: waitError } = useWaitForTransaction({
     hash: data?.hash,
     onSuccess: (txData) => {
+      console.log('Transaction successful', { hash: data?.hash, txData });
       toast.dismiss()
       toast.success(
         <a
@@ -120,9 +140,8 @@ const ListingForm: FC = () => {
     },
     onError: (e) => {
       toast.dismiss()
-      console.error("Transaction error:", e);
+      console.error("Transaction error (useWaitForTransaction):", { hash: data?.hash, error: e });
       
-      // Check if the transaction hash exists despite the error
       if (data?.hash) {
         toast.error(
           <div>
@@ -153,12 +172,17 @@ const ListingForm: FC = () => {
   })
 
   useEffect(() => {
-    if (readyToSendTransaction) {
+    console.log('Transaction state:', { readyToSendTransaction, isWriteLoading, isWriteSuccess, data, error, isError });
+    if (readyToSendTransaction && createListing && !isWriteLoading && !isWriteSuccess) {
       toast.loading('Submitting secret to Medusa...')
+      console.log('Calling createListing...', config.request);
       createListing?.()
-      setCid('')
     }
-  }, [readyToSendTransaction])
+  }, [readyToSendTransaction, createListing, isWriteLoading, isWriteSuccess, config.request, data, error, isError])
+
+  useEffect(() => {
+    console.log('Waiting for transaction state:', { isLoading, isSuccess, isWaitError, waitError, hash: data?.hash });
+  }, [isLoading, isSuccess, isWaitError, waitError, data?.hash]);
 
   const handleSubmit = async (event: any) => {
     event.preventDefault()
@@ -207,6 +231,7 @@ const ListingForm: FC = () => {
         toast.promise(storeCiphertext(s3Key, b64EncryptedData), {
           loading: 'Uploading encrypted secret to S3...',
           success: (cid) => {
+            console.log('S3 Upload successful, setting cid:', cid);
             setCid(cid)
             return (
               <a

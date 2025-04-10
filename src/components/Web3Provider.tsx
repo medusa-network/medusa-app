@@ -5,7 +5,7 @@ import {
   createClient,
   WagmiConfig,
 } from 'wagmi'
-import { InjectedConnector } from 'wagmi/connectors/injected'
+import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { mainnet } from 'wagmi/chains'
 import { jsonRpcProvider } from 'wagmi/providers/jsonRpc'
 import { ReactNode, useEffect } from 'react'
@@ -65,11 +65,10 @@ console.log("Available chains:", chains.map(c => ({ id: c.id, name: c.name })));
 const client = createClient({
   autoConnect: true,
   connectors: [
-    new InjectedConnector({ 
+    new MetaMaskConnector({ 
       chains,
       options: {
         shimDisconnect: true,
-        name: 'Holesky Testnet',
       }
     }),
   ],
