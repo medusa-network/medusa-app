@@ -1,25 +1,36 @@
 import { getNetwork } from '@wagmi/core'
 import { ethers } from 'ethers'
-import { NextApiRequest, NextApiResponse } from 'next'
-import { arbitrumGoerli } from 'wagmi/chains'
+import type { NextApiRequest, NextApiResponse } from 'next'
+import { arbitrumSepolia } from '@/lib/consts'
 
-const handler = async (req: NextApiRequest, res: NextApiResponse) => {
-  const { address } = req.body
-  const key = process.env.FAUCET_PRIVATE_KEY
-  const provider = new ethers.providers.JsonRpcProvider(
-    'https://goerli-rollup.arbitrum.io/rpc',
-  )
-  const wallet = new ethers.Wallet(key)
-  const signer = wallet.connect(provider)
-  if ((await signer.getBalance()).lt(ethers.utils.parseEther('0.1'))) {
-    return res.status(400).json({ error: 'Faucet is empty' })
+export default async function handler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+) {
+  const { address } = req.query
+
+  if (!address || typeof address !== 'string') {
+    return res.status(400).json({ error: 'Invalid address' })
   }
-  const tx = await signer.sendTransaction({
-    value: ethers.utils.parseEther('0.01'),
-    to: address,
-  })
 
-  res.status(200).json({ txHash: tx.hash })
+  if (!process.env.FAUCET_PRIVATE_KEY) {
+    return res.status(500).json({ error: 'Faucet not configured' })
+  }
+
+  try {
+    const provider = new ethers.providers.JsonRpcProvider(
+      arbitrumSepolia.rpcUrls.default.http[0],
+    )
+    const wallet = new ethers.Wallet(process.env.FAUCET_PRIVATE_KEY, provider)
+
+    const tx = await wallet.sendTransaction({
+      to: address,
+      value: ethers.utils.parseEther('0.05'),
+    })
+
+    return res.status(200).json({ txHash: tx.hash })
+  } catch (error) {
+    console.error(error)
+    return res.status(500).json({ error: 'Failed to send transaction' })
+  }
 }
-
-export default handler

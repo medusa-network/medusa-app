@@ -1,5 +1,5 @@
 // Stores a ciphertext by submitting it to the endpoint in @/api/storeCiphertext.ts
-// Returns the CID from Web3.Storage
+// Returns the file key from S3 storage
 export default async function storeCiphertext(
   name: string,
   ciphertext: string,
@@ -19,6 +19,11 @@ export default async function storeCiphertext(
 
   const response = await fetch(endpoint, options)
 
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to store ciphertext');
+  }
+
   const { cid } = await response.json()
-  return cid
+  return cid // Return the S3 key directly
 }
